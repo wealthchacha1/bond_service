@@ -1,0 +1,143 @@
+const Decimal = require("decimal.js");
+const { getFromRedis } = require("@wc/common-service");
+const { REDIS_KEYS } = require("../applicationConstants");
+
+/**
+ * Calculate interest and maturity on ₹1L using your logic with Decimal.js
+ * @param {number} maturityValue - maturity value for ₹5000 FD (e.g., 5565)
+ * @returns {object} { interestOnOneLakh, maturityOnOneLakh }
+ */
+function calculateInterestOn1LakhCumulative({ maturityValue }) {
+  const maturityValueFor5000 = new Decimal(maturityValue);
+  const fiveThousand = new Decimal(5000);
+  const hundredThousand = new Decimal(100000);
+
+  const interestFor5000 = maturityValueFor5000.minus(fiveThousand);
+  const interestOn1Lakh = interestFor5000
+    .mul(hundredThousand)
+    .div(fiveThousand);
+
+  return interestOn1Lakh.toFixed(2);
+}
+
+/**
+ * One universal formula for interest on ₹1Lakh (non-cumulative)
+ * @param {number} interestRate - Annual rate (e.g., 7.16)
+ * @param {number} tenureMonths - FD duration in months (e.g., 12)
+ * @returns {number} interestOnOneLakh
+ */
+function calculateInterestOn1LakhNonCumulative({ interestRate, tenureMonths }) {
+  return new Decimal(100000)
+    .mul(interestRate)
+    .mul(tenureMonths)
+    .div(12 * 100)
+    .toDecimalPlaces(2)
+    .toNumber();
+}
+
+function generateFdSubtitle({ fd }) {
+  const {
+    forSenior,
+    forWomen,
+    cumulative,
+    payoutType,
+    tenureMonths,
+    effectiveYield,
+    lockInPeriodInMonths,
+  } = fd;
+
+  const subtitles = [];
+
+  // Priority A: Campaign-style first line (Max 1)
+
+  // if (isLimitedOffer) {
+  //   subtitles.push("Limited-Time Special Offer");
+  // } else
+  // if (hasStrongTrackRecord) {
+  // subtitles.push("Strong Track Record");
+  // } else if (isTrustedBrand) {
+  //   subtitles.push("Trusted by Millions");
+  // } else
+
+  if (forSenior || forWomen) {
+    if (forSenior && forWomen) {
+      subtitles.push("Senior Women");
+    } else if (forSenior) {
+      subtitles.push("Senior Benefits");
+    } else if (forWomen) {
+      subtitles.push("Women Special");
+    }
+  } else {
+    if (effectiveYield > 8.5 && !subtitles.includes("Great Returns")) {
+      subtitles.unshift("Great Returns");
+    } else if (tenureMonths <= 12) {
+      subtitles.push("Quick Maturity");
+    } else if (lockInPeriodInMonths === 0) {
+      subtitles.push("Instant Withdrawal");
+    } else if (cumulative) {
+      subtitles.push("Compounding Growth");
+    } else if (payoutType === "MONTHLY") {
+      subtitles.push("Monthly Income");
+    } else if (payoutType === "AT_MATURITY") {
+      subtitles.push("Lump Sum");
+    } else {
+      subtitles.push("Safe Returns");
+    }
+  }
+
+  return subtitles.slice(0, 1).join(" · ");
+}
+function formatTenureToYearsMonths({ tenureMonths }) {
+  const years = Math.floor(tenureMonths / 12);
+  const months = tenureMonths % 12;
+
+  const yearStr = years > 0 ? `${years} Year${years > 1 ? "s" : ""}` : "";
+  const monthStr = months > 0 ? `${months} Month${months > 1 ? "s" : ""}` : "";
+
+  return [yearStr, monthStr].filter(Boolean).join(" ");
+}
+
+function generateBondSubtitle({ bond }) {
+  const {
+    category,
+    rating,
+    effectiveYield,
+    tenureMonths,
+    financeProductType,
+  } = bond;
+
+  const subtitles = [];
+
+  // Bond-specific subtitle generation
+  if (category) {
+    subtitles.push(category.toUpperCase());
+  }
+
+  if (rating && rating !== "Unrated") {
+    subtitles.push(rating);
+  }
+
+  if (effectiveYield > 12) {
+    subtitles.push("High Returns");
+  } else if (effectiveYield > 10) {
+    subtitles.push("Good Returns");
+  } else {
+    subtitles.push("Safe Returns");
+  }
+
+  if (tenureMonths <= 12) {
+    subtitles.push("Short Term");
+  } else if (tenureMonths > 36) {
+    subtitles.push("Long Term");
+  }
+
+  return subtitles.slice(0, 2).join(" · ");
+}
+
+module.exports = {
+  calculateInterestOn1LakhCumulative,
+  calculateInterestOn1LakhNonCumulative,
+  generateFdSubtitle,
+  formatTenureToYearsMonths,
+  generateBondSubtitle,
+};

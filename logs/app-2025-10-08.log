@@ -1,0 +1,25 @@
+{"level":30,"time":1759907872005,"service":"bonds-service","msg":"Connected to Redis"}
+{"level":30,"time":1759907872005,"service":"bonds-service","msg":"Redis connection established successfully"}
+{"level":30,"time":1759907872005,"service":"bonds-service","msg":"bonds-service running on http://localhost:3800"}
+{"level":30,"time":1759907872005,"service":"bonds-service","msg":"bonds-service running on http://localhost:3800/bonds/docs"}
+{"level":30,"time":1759907872005,"service":"bonds-service","msg":"Starting startup tasks..."}
+{"level":40,"time":1759907872092,"service":"bonds-service","msg":"\"root\" path \"/Users/dhruv/Desktop/FE/dist\" must exist"}
+{"level":30,"time":1759907915688,"service":"bonds-service","msg":"Connected to Redis"}
+{"level":30,"time":1759907915688,"service":"bonds-service","msg":"Redis connection established successfully"}
+{"level":30,"time":1759907915688,"service":"bonds-service","msg":"bonds-service running on http://localhost:3800"}
+{"level":30,"time":1759907915688,"service":"bonds-service","msg":"bonds-service running on http://localhost:3800/bonds/docs"}
+{"level":30,"time":1759907915688,"service":"bonds-service","msg":"Starting startup tasks..."}
+{"level":40,"time":1759907915739,"service":"bonds-service","msg":"\"root\" path \"/Users/dhruv/Desktop/FE/dist\" must exist"}
+{"level":30,"time":1759907915767,"service":"bonds-service","msg":"Server listening at http://127.0.0.1:3800"}
+{"level":30,"time":1759907915767,"service":"bonds-service","msg":"Server listening at http://192.168.1.19:3800"}
+{"level":30,"time":1759907916234,"service":"bonds-service","msg":"MongoDB connected"}
+{"level":30,"time":1759907917008,"service":"bonds-service","msg":"Received 7 bonds from API"}
+{"level":30,"time":1759907917496,"service":"bonds-service","msg":"Stored new bond with ID: 1756"}
+{"level":30,"time":1759907917611,"service":"bonds-service","msg":"Stored new bond with ID: 1902"}
+{"level":30,"time":1759907917804,"service":"bonds-service","msg":"Stored new bond with ID: 1965"}
+{"level":30,"time":1759907917971,"service":"bonds-service","msg":"Stored new bond with ID: 1966"}
+{"level":30,"time":1759907918066,"service":"bonds-service","msg":"Stored new bond with ID: 1967"}
+{"level":30,"time":1759907918499,"service":"bonds-service","msg":"Stored new bond with ID: 2105"}
+{"level":30,"time":1759907918615,"service":"bonds-service","msg":"Stored new bond with ID: 2199"}
+{"level":30,"time":1759907918615,"service":"bonds-service","msg":"Grip Bond data storage completed"}
+{"level":30,"time":1759907918615,"service":"bonds-service","msg":"Startup tasks completed successfully"}
