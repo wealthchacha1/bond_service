@@ -7,7 +7,6 @@ async function runGripBondInitialFetch(logger) {
     // Call the service directly instead of going through controller
     const bondService = new BondService(logger);
     const bondsResponse = await bondService.getAllBonds();
-    console.log("Bonds Response:::::::::::::", bondsResponse);
 
     // Extract bonds data from the response
     const bondsData = bondsResponse.data || [];
@@ -40,12 +39,10 @@ async function runGripBondInitialFetch(logger) {
             { new: true }
           );
           updatedCount++;
-          logger.info(`Updated bond with ID: ${bondData.id}`);
         } else {
           // Create new bond
           await Bond.create(bondData);
           storedCount++;
-          logger.info(`Stored new bond with ID: ${bondData.id}`);
         }
       } catch (bondError) {
         errorCount++;
@@ -60,7 +57,6 @@ async function runGripBondInitialFetch(logger) {
       errors: errorCount
     };
 
-    logger.info("Grip Bond data storage completed", result);
     return result;
   } catch (error) {
     logger.error({ error }, "Error in running Grip Bond initial data fetch");
@@ -74,7 +70,6 @@ async function runStartupTasks(logger) {
 
     const result = await runGripBondInitialFetch(logger);
     
-    logger.info("Startup tasks completed successfully", result);
     return result;
   } catch (error) {
     logger.error({ error }, "Error in startup tasks");

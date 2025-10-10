@@ -1024,6 +1024,239 @@ const getAllBondsSchema = {
   },
 };
 
+// Bond Category Schemas
+const getBondsByCategorySchema = {
+  body: {
+    type: "object",
+    properties: {
+      categoryName: {
+        type: "string",
+      },
+      minInterestRate: {
+        type: "number",
+        minimum: 0,
+        maximum: 50,
+      },
+      maxInterestRate: {
+        type: "number",
+        minimum: 0,
+        maximum: 50,
+      },
+      minEffectiveYield: {
+        type: "number",
+        minimum: 0,
+        maximum: 50,
+      },
+      maxEffectiveYield: {
+        type: "number",
+        minimum: 0,
+        maximum: 50,
+      },
+      financeCompanyName: {
+        type: "string",
+      },
+      rating: {
+        type: "string",
+      },
+      tenureMonths: {
+        type: "number",
+        minimum: 1,
+      },
+      isSelectedBond: {
+        type: "boolean",
+        default: true,
+      },
+      sortBy: {
+        type: "string",
+        enum: ["interestRate", "effectiveYield", "tenureMonths"],
+        default: "effectiveYield",
+      },
+      sortOrder: {
+        type: "string",
+        enum: ["asc", "desc"],
+        default: "desc",
+      },
+      limit: {
+        type: "number",
+        minimum: 1,
+        maximum: 100,
+        default: 20,
+      },
+      page: {
+        type: "number",
+        minimum: 1,
+        default: 1,
+      },
+    },
+    additionalProperties: false,
+  },
+  response: {
+    200: {
+      type: "object",
+      properties: {
+        status: { type: "string" },
+        message: { type: "string" },
+        data: {
+          type: "object",
+          properties: {
+            bonds: {
+              type: "array",
+              items: { type: "object", additionalProperties: true },
+            },
+            total: { type: "number" },
+            totalPages: { type: "number" },
+            appliedFilters: {
+              type: "object",
+              properties: {
+                categoryName: { type: "string" },
+                minInterestRate: { type: "number" },
+                maxInterestRate: { type: "number" },
+                minEffectiveYield: { type: "number" },
+                maxEffectiveYield: { type: "number" },
+                sortBy: { type: "string" },
+                sortOrder: { type: "string" },
+                financeCompanyName: { type: "string" },
+                rating: { type: "string" },
+                tenureMonths: { type: "number" },
+                isSelectedBond: { type: "boolean" },
+              },
+              additionalProperties: false,
+            },
+          },
+          required: ["bonds", "total", "totalPages", "appliedFilters"],
+        },
+      },
+    },
+    400: {
+      type: "object",
+      properties: {
+        status: { type: "string" },
+        message: { type: "string" },
+      },
+    },
+    404: {
+      type: "object",
+      properties: {
+        status: { type: "string" },
+        message: { type: "string" },
+      },
+    },
+    500: {
+      type: "object",
+      properties: {
+        status: { type: "string" },
+        message: { type: "string" },
+      },
+    },
+  },
+};
+
+const updateBondsInCategorySchema = {
+  body: {
+    type: "object",
+    properties: {
+      categoryName: {
+        type: "string",
+      },
+      addBondIds: {
+        type: "array",
+        items: { type: "string" },
+        default: [],
+      },
+      removeBondIds: {
+        type: "array",
+        items: { type: "string" },
+        default: [],
+      },
+    },
+  },
+  response: {
+    200: {
+      type: "object",
+      properties: {
+        status: { type: "string" },
+        message: { type: "string" },
+        data: { type: "object" },
+      },
+    },
+    400: {
+      type: "object",
+      properties: { status: { type: "string" }, message: { type: "string" } },
+    },
+    404: {
+      type: "object",
+      properties: { status: { type: "string" }, message: { type: "string" } },
+    },
+    500: {
+      type: "object",
+      properties: { status: { type: "string" }, message: { type: "string" } },
+    },
+  },
+};
+
+const getBondFilterOptionsSchema = {
+  querystring: {
+    type: "object",
+    properties: {
+      financeCompanyName: {
+        type: "string",
+      },
+    },
+  },
+  response: {
+    200: {
+      type: "object",
+      properties: {
+        status: { type: "string" },
+        message: { type: "string" },
+        data: {
+          type: "object",
+          properties: {
+            interestRate: {
+              type: "object",
+              properties: {
+                minInterestRate: { type: "number" },
+                maxInterestRate: { type: "number" },
+              },
+            },
+            effectiveYield: {
+              type: "object",
+              properties: {
+                minEffectiveYield: { type: "number" },
+                maxEffectiveYield: { type: "number" },
+              },
+            },
+            financeCompanyNames: {
+              type: "array",
+              items: { type: "string" },
+            },
+            ratings: {
+              type: "array",
+              items: { type: "string" },
+            },
+            tenureMonths: {
+              type: "array",
+              items: { type: "number" },
+            },
+          },
+        },
+      },
+    },
+    400: {
+      type: "object",
+      properties: { status: { type: "string" }, message: { type: "string" } },
+    },
+    404: {
+      type: "object",
+      properties: { status: { type: "string" }, message: { type: "string" } },
+    },
+    500: {
+      type: "object",
+      properties: { status: { type: "string" }, message: { type: "string" } },
+    },
+  },
+};
+
 module.exports = {
   getPopularFdsSchema,
   getBestByIssuerSchema,
@@ -1058,4 +1291,8 @@ module.exports = {
   getBondDetailsSchema,
   getChachaPicksSchema,
   getAllBondsSchema,
+  // Bond Category schemas
+  getBondsByCategorySchema,
+  updateBondsInCategorySchema,
+  getBondFilterOptionsSchema,
 };

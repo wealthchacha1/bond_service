@@ -145,6 +145,11 @@ const CRON_SCHEDULES = {
   "suryoday small finance bank": "0 16 * * *", // Daily at 4:00 PM
 };
 
+const BOND_STATUS = {
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
+};
+
 module.exports = {
   STATUS_CODES,
   REDIS_KEYS,
@@ -167,4 +172,5 @@ module.exports = {
   FINANCE_COMPANY_NAMES,
   FINANCE_CONSTANTS_MAP,
   additionalBenefits,
+  BOND_STATUS,
 };

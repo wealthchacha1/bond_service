@@ -3,6 +3,7 @@ const Bond = require("../models/bondsSchema");
 const { getFromRedis } = require("@wc/common-service");
 const { REDIS_KEYS } = require("../applicationConstants");
 const BondController = require("../controllers/bondsController");
+const BondsCategoryController = require("../controllers/bondsCategoryController");
 
 const {
   getPopularBondsSchema,
@@ -19,10 +20,14 @@ const {
   getBondDetailsSchema,
   getChachaPicksSchema,
   getAllBondsSchema,
+  getBondsByCategorySchema,
+  updateBondsInCategorySchema,
+  getBondFilterOptionsSchema,
 } = require("../validators/validator");
 
 async function bondRoutes(fastify, opts) {
   const bondController = new BondController(fastify);
+  const bondsCategoryController = new BondsCategoryController(fastify);
 
   // Add all open (public) routes here
   const openRoutes = [
@@ -148,6 +153,25 @@ async function bondRoutes(fastify, opts) {
     "/get-all-bonds",
     { schema: getAllBondsSchema },
     bondController.getAllBonds
+  );
+
+  // Bond Category Routes
+  fastify.post(
+    "/get-bonds-by-category",
+    { schema: getBondsByCategorySchema },
+    bondsCategoryController.getBondsByCategory
+  );
+
+  fastify.post(
+    "/update-bonds-in-category",
+    { schema: updateBondsInCategorySchema },
+    bondsCategoryController.updateBondsInCategory
+  );
+
+  fastify.get(
+    "/get-bond-filter-options",
+    { schema: getBondFilterOptionsSchema },
+    bondsCategoryController.getFilterOptions
   );
 }
 
