@@ -867,7 +867,7 @@ const getBondByIdSchema = {
   params: {
     type: "object",
     properties: {
-      bondId: { type: "string" },
+      bondId: { type: "number" },
     },
     required: ["bondId"],
   },

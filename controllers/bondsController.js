@@ -18,21 +18,26 @@ class BondController {
   // Validate and sanitize input, handle errors securely
   async getBondById(request, reply) {
     try {
-      //check if id is mongoose id
-      if (!mongoose.Types.ObjectId.isValid(request.params.bondId)) {
-        return sendError({
-          reply,
-          message: "Invalid Bond id",
-          statusCode: 400,
-        });
-      }
       const bond = await this.bondService.getBondById({
-        id: request.params.bondId.toString(),
+        id: request.params.bondId,
       });
-      const data = [bond];
-      if (!bond)
-        return sendError({ reply, message: "Bond not found", statusCode: 404 });
-      sendSuccess({ reply, message: "Bond fetched", data });
+      const calculatorData = await this.bondService.calculateBond({
+        username: process.env.WC_GRIP_USERNAME,
+        assetId: request.params.bondId,
+        amount: 1,
+      });
+      const finalResult = {
+        "ytm": bond.interestRate,
+        "remainingTenure": bond.originalData.TimeToMaturity,
+        "rating": bond.rating,
+        "tags": bond.badges,
+        "logo": bond.logo,
+        "maxInvestment": calculatorData.assetCalcDetails.maxInvestment,
+        "completedPercentage": bond.originalData.percentageCompletion,
+        "perUnitPurchasePrice": calculatorData.assetCalcDetails.purchasePrice,
+        "perUnitReturnAmount": calculatorData.assetCalcDetails.preTaxReturns
+      }
+      sendSuccess({ reply, message: "Bond fetched", data: finalResult });
     } catch (err) {
       reply.log.error({ err }, "Error in getBondById");
       sendError({ reply, message: err.message, statusCode: 400 });

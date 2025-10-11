@@ -76,7 +76,6 @@ fastify.decorate("auth", async function (req, reply) {
 
     const token = authHeader.split(" ")[1];
     const user = await verifyToken(token, fastify);
-
     if (!user) {
       return;
     }

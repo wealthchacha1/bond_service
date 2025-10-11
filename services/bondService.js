@@ -6,14 +6,10 @@ const Bond = require("../models/bondsSchema");
 const { getFromRedis, getFCByIdOrName } = require("@wc/common-service");
 const {
   REDIS_KEYS,
-  AGE_GROUPS,
-  GENDER,
   TENURE,
   BOND_STATUS,
-  USER_FILTER_OPTIONS,
 } = require("../applicationConstants");
 const { saveAdminLog, saveAuthLog } = require("../utils/auditLogs");
-const { formatTenureToYearsMonths } = require("../utils/helper");
 
 // Import Grip Finance Service
 const { GripFinanceService } = require("@fc/grip_bond_service");
@@ -30,7 +26,6 @@ class BondService {
     const bonds = await Bond.find(query).skip(skip).limit(limit).exec();
     const totalBonds = (await Bond.countDocuments(query)) || 0;
     const totalPages = Math.ceil(totalBonds / limit);
-    console.log(totalPages);
     return { bonds, totalBonds, totalPages };
   }
 
@@ -49,7 +44,7 @@ class BondService {
   async getBondById({ id }) {
     // this.logger.info({ id }, "Fetching Bond by ID");
     try {
-      const bond = await Bond.findOne({ _id: id, status: BOND_STATUS.ACTIVE });
+      const bond = await Bond.findOne({ id: id, status: BOND_STATUS.ACTIVE });
       if (!bond) {
         // this.logger.warn({ id }, "Bond not found or inactive");
         throw new Error("Bond not found or inactive");
