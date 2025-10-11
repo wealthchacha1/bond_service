@@ -16,7 +16,7 @@ const { saveAdminLog, saveAuthLog } = require("../utils/auditLogs");
 const { formatTenureToYearsMonths } = require("../utils/helper");
 
 // Import Grip Finance Service
-const { GripFinanceService } = require("@wc/grip-bond-service");
+const { GripFinanceService } = require("@fc/grip-bond-service");
 
 class BondService {
   constructor(logger) {
@@ -25,13 +25,15 @@ class BondService {
     this.gripService = new GripFinanceService();
   }
 
-  async getAllBondsFromDB(){
+  async getAllBondsFromDB() {
     const bonds = await Bond.find({}).lean();
     return bonds;
   }
 
   async getAllBonds() {
-    const bonds = await this.gripService.getAllBonds("68cc07d2b56f2c5b52a0d1b0");
+    const bonds = await this.gripService.getAllBonds(
+      "68cc07d2b56f2c5b52a0d1b0"
+    );
     return bonds;
   }
 
@@ -116,7 +118,9 @@ class BondService {
         .skip(skip)
         .limit(limit)
         .exec();
-      const totalBonds = await Bond.countDocuments({ status: BOND_STATUS.ACTIVE });
+      const totalBonds = await Bond.countDocuments({
+        status: BOND_STATUS.ACTIVE,
+      });
       const totalPages = Math.ceil(totalBonds / limit);
       return { data, totalBonds, totalPages };
     }
@@ -304,7 +308,10 @@ class BondService {
   async getChachaCompares({ bondId }) {
     if (!bondId) throw new Error("Bond ID is required for comparison");
     console.log("Fetching Bond for comparison:", bondId);
-    const bond = await Bond.findOne({ _id: bondId, status: BOND_STATUS.ACTIVE });
+    const bond = await Bond.findOne({
+      _id: bondId,
+      status: BOND_STATUS.ACTIVE,
+    });
     console.log("Fetched Bond for comparison:", bond);
     if (!bond) throw new Error("Bond not found or inactive");
 
@@ -385,8 +392,12 @@ class BondService {
 
     const notFoundIds = bondIds.filter((id) => !foundIds.includes(id));
 
-    const activeBonds = bonds.filter((bond) => bond.status === BOND_STATUS.ACTIVE);
-    const inactiveBonds = bonds.filter((bond) => bond.status !== BOND_STATUS.ACTIVE);
+    const activeBonds = bonds.filter(
+      (bond) => bond.status === BOND_STATUS.ACTIVE
+    );
+    const inactiveBonds = bonds.filter(
+      (bond) => bond.status !== BOND_STATUS.ACTIVE
+    );
 
     activeBonds.sort((a, b) => b.interestRate - a.interestRate);
 
@@ -432,10 +443,13 @@ class BondService {
    */
   async calculateBond({ username, assetId, amount = 10000 }) {
     try {
-      this.logger.info({ username, assetId, amount }, "Calculating bond returns");
-      
+      this.logger.info(
+        { username, assetId, amount },
+        "Calculating bond returns"
+      );
+
       const result = await this.gripService.calculateBonds(username, assetId);
-      
+
       this.logger.info({ result }, "Bond calculation completed");
       return result;
     } catch (error) {
@@ -451,9 +465,11 @@ class BondService {
   async getAllGripBonds() {
     try {
       this.logger.info("Fetching all bonds from Grip service");
-      
+
       console.log("Fetching all bonds from Grip service");
-      const result = await this.gripService.getAllBonds("68cc07d2b56f2c5b52a0d1b0");
+      const result = await this.gripService.getAllBonds(
+        "68cc07d2b56f2c5b52a0d1b0"
+      );
       console.log("Result:::::::::::::", result);
       // this.logger.info({ totalSchemes: result.totalSchemes }, "All bonds fetched");
       console.log("All bonds fetched", result);
@@ -473,12 +489,15 @@ class BondService {
   async getBondDetails({ bondId }) {
     try {
       this.logger.info({ bondId }, "Fetching bond details");
-      
-      const bond = await Bond.findOne({ _id: bondId, status: BOND_STATUS.ACTIVE });
+
+      const bond = await Bond.findOne({
+        _id: bondId,
+        status: BOND_STATUS.ACTIVE,
+      });
       if (!bond) {
         throw new Error("Bond not found or inactive");
       }
-      
+
       return bond;
     } catch (error) {
       this.logger.error({ error, bondId }, "Error fetching bond details");
@@ -495,9 +514,12 @@ class BondService {
   async getKYCUrl({ username, assetId }) {
     try {
       this.logger.info({ username, assetId }, "Getting KYC URL");
-      
-      const result = await this.gripService.getRedirectionUrlForKYC(username, assetId);
-      
+
+      const result = await this.gripService.getRedirectionUrlForKYC(
+        username,
+        assetId
+      );
+
       this.logger.info({ result }, "KYC URL generated");
       console.log("KYC URL generated", result);
       return result;
@@ -512,10 +534,19 @@ class BondService {
    * @param {Object} params - User data
    * @returns {Promise<Object>} - Created user details
    */
-  async createGripUser({ emailID, phoneNumber, firstName, lastName, countryCode = 91 }) {
+  async createGripUser({
+    emailID,
+    phoneNumber,
+    firstName,
+    lastName,
+    countryCode = 91,
+  }) {
     try {
-      this.logger.info({ emailID, phoneNumber, firstName, lastName }, "Creating Grip user");
-      
+      this.logger.info(
+        { emailID, phoneNumber, firstName, lastName },
+        "Creating Grip user"
+      );
+
       const userData = {
         emailID,
         phoneNumber,
@@ -523,16 +554,19 @@ class BondService {
         lastName,
         countryCode,
       };
-      
+
       // Generate username from firstName and phoneNumber
       const username = `${firstName.toLowerCase()}${phoneNumber.toString().slice(-4)}`;
-      
+
       const result = await this.gripService.createGripUser(userData, username);
-      
+
       this.logger.info({ result }, "Grip user created");
       return result;
     } catch (error) {
-      this.logger.error({ error, emailID, phoneNumber }, "Error creating Grip user");
+      this.logger.error(
+        { error, emailID, phoneNumber },
+        "Error creating Grip user"
+      );
       throw error;
     }
   }
@@ -555,4 +589,3 @@ class BondService {
 }
 
 module.exports = BondService;
-
