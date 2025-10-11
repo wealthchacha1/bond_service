@@ -35,7 +35,8 @@ class BondController {
         "maxInvestment": calculatorData.assetCalcDetails.maxInvestment,
         "completedPercentage": bond.originalData.percentageCompletion,
         "perUnitPurchasePrice": calculatorData.assetCalcDetails.purchasePrice,
-        "perUnitReturnAmount": calculatorData.assetCalcDetails.preTaxReturns
+        "perUnitReturnAmount": calculatorData.assetCalcDetails.preTaxReturns,
+        "maxUnits": calculatorData.assetCalcDetails.maxLots
       }
       sendSuccess({ reply, message: "Bond fetched", data: finalResult });
     } catch (err) {

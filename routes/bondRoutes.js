@@ -70,6 +70,8 @@ async function bondRoutes(fastify, opts) {
     bondsCategoryController.getBondsByCategory
   );
 
+  fastify.post("/create-grip-user", bondController.createGripUser);
+
   //calculate api
   fastify.post(
     "/calculate-bond",
@@ -78,8 +80,6 @@ async function bondRoutes(fastify, opts) {
   );
 
   fastify.get("/get-kyc-url", bondController.getKYCUrl);
-
-  fastify.post("/create-grip-user", bondController.createGripUser);
 
   fastify.post(
     "/update-bonds-in-category",
