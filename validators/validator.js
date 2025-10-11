@@ -1024,6 +1024,12 @@ const getAllBondsSchema = {
   },
 };
 
+const getAllBondsFromDBSchema = {
+  response: {
+    200: bondResponse,
+  },
+};
+
 // Bond Category Schemas
 const getBondsByCategorySchema = {
   body: {
@@ -1291,6 +1297,7 @@ module.exports = {
   getBondDetailsSchema,
   getChachaPicksSchema,
   getAllBondsSchema,
+  getAllBondsFromDBSchema,
   // Bond Category schemas
   getBondsByCategorySchema,
   updateBondsInCategorySchema,

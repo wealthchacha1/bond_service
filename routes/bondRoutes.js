@@ -20,6 +20,7 @@ const {
   getBondDetailsSchema,
   getChachaPicksSchema,
   getAllBondsSchema,
+  getAllBondsFromDBSchema,
   getBondsByCategorySchema,
   updateBondsInCategorySchema,
   getBondFilterOptionsSchema,
@@ -152,7 +153,7 @@ async function bondRoutes(fastify, opts) {
   fastify.get(
     "/get-all-bonds",
     { schema: getAllBondsSchema },
-    bondController.getAllBonds
+    bondController.getAllBondsFromDB
   );
 
   // Bond Category Routes
