@@ -78,17 +78,6 @@ describe("FdController", () => {
     });
   });
 
-  test("getBestByIssuer - success", async () => {
-    controller.fdService.getBestByIssuer = jest.fn().mockResolvedValue(mockFds);
-    const request = {};
-    await controller.getBestByIssuer(request, reply);
-    expect(reply.send).toHaveBeenCalledWith({
-      status: "success",
-      message: "Best by Issuer FDs fetched",
-      data: mockFds,
-    });
-  });
-
   test("getFdListByType - valid type", async () => {
     controller.fdService.getFdListByType = jest.fn().mockResolvedValue(mockFds);
     const request = { query: { type: "popular", userId: "user1" } };

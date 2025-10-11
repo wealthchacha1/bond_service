@@ -14,7 +14,6 @@ const fastify = require("fastify")({
       removeAdditional: true,
       strict: false,
       validateFormats: false, // Disable format validation completely
-      unknownFormats: "ignore",
     },
   },
 }); // let Fastify make its own pino

@@ -7,7 +7,6 @@ const BondsCategoryController = require("../controllers/bondsCategoryController"
 
 const {
   getPopularBondsSchema,
-  getBestByIssuerSchema,
   getBondListByTypeSchema,
   getBondByIdSchema,
   getIssuerPopularBondListSchema,
@@ -27,7 +26,7 @@ const {
 } = require("../validators/validator");
 
 async function bondRoutes(fastify, opts) {
-  const bondController = new BondController(fastify);
+  const bondController = new BondController(fastify.log);
   const bondsCategoryController = new BondsCategoryController(fastify);
 
   // Add all open (public) routes here
@@ -76,16 +75,11 @@ async function bondRoutes(fastify, opts) {
     { schema: getBondByIdSchema },
     bondController.getBondById
   );
-  fastify.get(
-    "/get-chacha-picks",
-    { schema: getChachaPicksSchema },
-    bondController.getChachaPicks
-  );
-  fastify.get(
-    "/best-by-issuer",
-    { schema: getBestByIssuerSchema },
-    bondController.getBestByIssuer
-  );
+  // fastify.get(
+  //   "/get-chacha-picks",
+  //   { schema: getChachaPicksSchema },
+  //   bondController.getChachaPicks
+  // );
   fastify.get(
     "/get-bond-list-by-type",
     { schema: getBondListByTypeSchema },
@@ -140,15 +134,9 @@ async function bondRoutes(fastify, opts) {
     bondController.getBondDetails
   );
 
-  fastify.get(
-    "/get-kyc-url",
-    bondController.getKYCUrl
-  );
+  fastify.get("/get-kyc-url", bondController.getKYCUrl);
 
-  fastify.post(
-    "/create-grip-user",
-    bondController.createGripUser
-  );
+  fastify.post("/create-grip-user", bondController.createGripUser);
 
   fastify.get(
     "/get-all-bonds",

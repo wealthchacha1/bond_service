@@ -14,13 +14,14 @@ const bondCategorySchema = new mongoose.Schema(
       },
     ],
   },
-  { 
+  {
     timestamps: true,
-    collection: "bond_categories" // explicit collection name
+    collection: "bond_categories", // explicit collection name
   }
 );
 
-
-const BondCategory = mongoose.models.BondCategory || mongoose.model("BondCategory", bondCategorySchema, "bond_categories");
+const BondCategory =
+  mongoose.models.BondCategory ||
+  mongoose.model("BondCategory", bondCategorySchema, "bond_categories");
 
 module.exports = BondCategory;

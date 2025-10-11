@@ -63,22 +63,6 @@ describe("FdService", () => {
     expect(result).toEqual([{ _id: 2 }]);
   });
 
-  it("getBestByIssuer returns best FD per company", async () => {
-    redisClient.get.mockResolvedValue(JSON.stringify(["shriram", "mahindra"]));
-    FD.find.mockReturnValue({
-      lean: jest.fn().mockResolvedValue([
-        { financeCompany: "shriram", interestRate: 8 },
-        { financeCompany: "shriram", interestRate: 7 },
-        { financeCompany: "mahindra", interestRate: 7.5 },
-      ]),
-    });
-    const result = await service.getBestByIssuer();
-    expect(result).toEqual([
-      { financeCompany: "shriram", interestRate: 8 },
-      { financeCompany: "mahindra", interestRate: 7.5 },
-    ]);
-  });
-
   it("getFdListByType throws on invalid type", async () => {
     await expect(service.getFdListByType("invalid")).rejects.toThrow(
       "Invalid FD type"

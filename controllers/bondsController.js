@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const { calculateBondSchema } = require("../validators/validator");
 const Bond = require("../models/bondsSchema");
 const Decimal = require("decimal.js");
+const BondCategory = require("../models/bondsCategories");
 
 const {
   getFromRedis,
@@ -12,10 +13,7 @@ const {
   verifyToken,
   saveToRedis,
 } = require("@wc/common-service");
-const {
-  REDIS_KEYS,
-  BOND_STATUS,
-} = require("../applicationConstants");
+const { REDIS_KEYS, BOND_STATUS } = require("../applicationConstants");
 
 const {
   generateBondSubtitle,
@@ -28,7 +26,6 @@ class BondController {
     // Bind only user-facing APIs
     this.getBondById = this.getBondById.bind(this);
     this.getChachaPicks = this.getChachaPicks.bind(this);
-    this.getBestByIssuer = this.getBestByIssuer.bind(this);
     this.getBondListByType = this.getBondListByType.bind(this);
     this.getIssuerPopularBondList = this.getIssuerPopularBondList.bind(this);
     this.getChachaCompares = this.getChachaCompares.bind(this);
@@ -49,7 +46,11 @@ class BondController {
     try {
       //check if id is mongoose id
       if (!mongoose.Types.ObjectId.isValid(request.params.bondId)) {
-        return sendError({ reply, message: "Invalid Bond id", statusCode: 400 });
+        return sendError({
+          reply,
+          message: "Invalid Bond id",
+          statusCode: 400,
+        });
       }
       const bond = await this.bondService.getBondById({
         id: request.params.bondId.toString(),
@@ -74,16 +75,6 @@ class BondController {
       sendSuccess({ reply, message: "Chacha Picks fetched", data: bonds });
     } catch (err) {
       reply.log.error({ err }, "Error in getChachaPicks");
-      sendError({ reply, message: err.message, statusCode: 400 });
-    }
-  }
-
-  async getBestByIssuer(request, reply) {
-    try {
-      const bonds = await this.bondService.getBestByIssuer();
-      sendSuccess({ reply, message: "Best by Issuer Bonds fetched", data: bonds });
-    } catch (err) {
-      reply.log.error({ err }, "Error in getBestByIssuer");
       sendError({ reply, message: err.message, statusCode: 400 });
     }
   }
@@ -206,7 +197,10 @@ class BondController {
   async getRecommendedBonds(request, reply) {
     try {
       const userId = request.user?.id || request.query.userId;
-      const bonds = await this.bondService.getRecommendedBonds({ userId, request });
+      const bonds = await this.bondService.getRecommendedBonds({
+        userId,
+        request,
+      });
       sendSuccess({ reply, message: "Recommended Bonds fetched", data: bonds });
     } catch (err) {
       reply.log.error({ err }, "Error in getRecommendedBonds");
@@ -424,12 +418,19 @@ class BondController {
         });
       }
 
-      const { emailID, phoneNumber, firstName, lastName, countryCode = 91 } = userData;
+      const {
+        emailID,
+        phoneNumber,
+        firstName,
+        lastName,
+        countryCode = 91,
+      } = userData;
 
       if (!emailID || !phoneNumber || !firstName || !lastName) {
         return sendError({
           reply,
-          message: "Missing required fields: emailID, phoneNumber, firstName, lastName",
+          message:
+            "Missing required fields: emailID, phoneNumber, firstName, lastName",
           statusCode: 400,
         });
       }
@@ -477,11 +478,40 @@ class BondController {
 
   async getAllBondsFromDB(request, reply) {
     try {
-      const bonds = await this.bondService.getAllBondsFromDB();
+      const { type, limit, page } = request.query;
+      const query = {};
+      let bonds, totalBonds, data;
+
+      if (type) {
+        const category = await BondCategory.findOne({
+          categoryName: type,
+        }).populate("bondIds");
+        const skip = (page - 1) * limit;
+
+        if (!category || !category.bondIds) {
+          return sendError({
+            reply,
+            message: "Invalid Bond type",
+            statusCode: 400,
+          });
+        }
+
+        if (category) {
+          bonds = category.bondIds.slice(skip, skip + limit);
+          totalBonds = category.bondIds.length || 0;
+        }
+      } else {
+        data = await this.bondService.getAllBondsFromDB({ query, limit, page });
+      }
+
       sendSuccess({
         reply,
         message: "All bonds fetched successfully",
-        data: bonds,
+        data: bonds || data?.bonds,
+        extraData: {
+          totalBonds: totalBonds || data?.totalBonds || 0,
+          totalPages: Math.ceil(totalBonds / limit) || data?.totalPages,
+        },
       });
     } catch (err) {
       reply.log.error({ err }, "Error in getAllBonds");

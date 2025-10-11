@@ -25,9 +25,13 @@ class BondService {
     this.gripService = new GripFinanceService();
   }
 
-  async getAllBondsFromDB() {
-    const bonds = await Bond.find({}).lean();
-    return bonds;
+  async getAllBondsFromDB({ query = {}, limit = 4, page = 1 }) {
+    const skip = (page - 1) * limit;
+    const bonds = await Bond.find(query).skip(skip).limit(limit).exec();
+    const totalBonds = (await Bond.countDocuments(query)) || 0;
+    const totalPages = Math.ceil(totalBonds / limit);
+    console.log(totalPages);
+    return { bonds, totalBonds, totalPages };
   }
 
   async getAllBonds() {
@@ -43,17 +47,17 @@ class BondService {
    * @returns {Promise<Object>} - Bond record.
    */
   async getBondById({ id }) {
-    this.logger.info({ id }, "Fetching Bond by ID");
+    // this.logger.info({ id }, "Fetching Bond by ID");
     try {
       const bond = await Bond.findOne({ _id: id, status: BOND_STATUS.ACTIVE });
       if (!bond) {
-        this.logger.warn({ id }, "Bond not found or inactive");
+        // this.logger.warn({ id }, "Bond not found or inactive");
         throw new Error("Bond not found or inactive");
       }
-      this.logger.info(bond + " Bond fetched successfully");
+      // this.logger.info(bond + " Bond fetched successfully");
       return bond;
     } catch (error) {
-      this.logger.error({ error, id }, "Error fetching Bond by ID");
+      // this.logger.error({ error, id }, "Error fetching Bond by ID");
       throw error;
     }
   }
@@ -104,6 +108,7 @@ class BondService {
           totalPages: 0,
         };
         data.totalPages = Math.ceil(data.totalBonds / limit);
+        console.log({ data });
         return data;
       }
       userDetails = JSON.parse(userRaw);
@@ -142,33 +147,6 @@ class BondService {
     const totalBonds = await Bond.countDocuments(query);
     const totalPages = Math.ceil(totalBonds / limit);
     return { data, totalBonds, totalPages };
-  }
-
-  /**
-   * Get best Bond by issuer (highest interest rate per financeCompany)
-   * @returns {Promise<Array>} - List of best Bonds by issuer.
-   */
-  async getBestByIssuer() {
-    const companyListRaw = await getFromRedis(REDIS_KEYS.FC_LIST);
-    console.log("Company List Raw:", companyListRaw);
-    if (!companyListRaw)
-      throw new Error("Finance company list not found in Redis");
-
-    const allBonds = await Bond.find({
-      status: BOND_STATUS.ACTIVE,
-    }).exec();
-
-    const bestByCompany = {};
-    for (const bond of allBonds) {
-      const company = bond.financeCompanyId;
-      if (
-        !bestByCompany[company] ||
-        bond.interestRate > bestByCompany[company].interestRate
-      ) {
-        bestByCompany[company] = bond;
-      }
-    }
-    return Object.values(bestByCompany);
   }
 
   /**

@@ -44,7 +44,7 @@ const bondResponse = {
             investmentAmount: { type: "number" },
             badges: {
               type: "array",
-              items: { type: "string" }
+              items: { type: "string" },
             },
             isin: { type: "string" },
             returnsType: { type: "string" },
@@ -63,7 +63,7 @@ const bondResponse = {
                 minInvestment: { type: "number" },
                 badges: {
                   type: "array",
-                  items: { type: "string" }
+                  items: { type: "string" },
                 },
                 category: { type: "string" },
                 returnsType: { type: "string" },
@@ -73,14 +73,16 @@ const bondResponse = {
                 TimeToMaturity: { type: "number" },
                 compliantBody: { type: "string" },
                 rating: { type: "string" },
-                percentageCompletion: { type: "number" }
-              }
-            }
+                percentageCompletion: { type: "number" },
+              },
+            },
           },
         },
       },
     },
   },
+  totalBonds: { type: "number" },
+  totalPages: { type: "number" },
 };
 
 const authorizationHeaders = {
@@ -175,8 +177,6 @@ const getPopularFdsSchema = {
   },
 };
 const getChachaPicksSchema = getPopularFdsSchema;
-
-const getBestByIssuerSchema = getPopularFdsSchema;
 
 const getFdListByTypeSchema = {
   querystring: {
@@ -618,7 +618,6 @@ const getUnityFdUrlSchema = {
   },
 };
 
-
 const getFdsByCategorySchema = {
   body: {
     type: "object",
@@ -729,7 +728,6 @@ const getFdsByCategorySchema = {
     },
   },
 };
-
 
 const updateFdsInCategorySchema = {
   body: {
@@ -848,12 +846,6 @@ const getPopularBondsSchema = {
     200: bondResponse,
   },
 };
-
-// const getBestByIssuerSchema = {
-//   response: {
-//     200: bondResponse,
-//   },
-// };
 
 const getBondListByTypeSchema = {
   querystring: {
@@ -1019,6 +1011,16 @@ const getBondDetailsSchema = {
 // };
 
 const getAllBondsSchema = {
+  querystring: {
+    type: "object",
+    properties: {
+      limit: { type: "number", default: 4, minimum: 1 },
+      page: { type: "number", default: 1, minimum: 1 },
+      type: {
+        type: "string",
+      },
+    },
+  },
   response: {
     200: bondResponse,
   },
@@ -1265,7 +1267,6 @@ const getBondFilterOptionsSchema = {
 
 module.exports = {
   getPopularFdsSchema,
-  getBestByIssuerSchema,
   chachaComparesSchema,
   getIssuerPopularFdListSchema,
   getFdListByTypeSchema,
@@ -1284,7 +1285,6 @@ module.exports = {
   getFilterOptionsSchema,
   // Bond-specific schemas
   getPopularBondsSchema,
-  getBestByIssuerSchema,
   getBondListByTypeSchema,
   getBondByIdSchema,
   getIssuerPopularBondListSchema,
