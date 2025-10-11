@@ -16,7 +16,7 @@ const { saveAdminLog, saveAuthLog } = require("../utils/auditLogs");
 const { formatTenureToYearsMonths } = require("../utils/helper");
 
 // Import Grip Finance Service
-const { GripFinanceService } = require("@fc/grip-bond-service");
+const { GripFinanceService } = require("@fc/grip_bond_service");
 
 class BondService {
   constructor(logger) {
