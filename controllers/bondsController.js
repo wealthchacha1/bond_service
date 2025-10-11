@@ -41,6 +41,7 @@ class BondController {
     this.getKYCUrl = this.getKYCUrl.bind(this);
     this.createGripUser = this.createGripUser.bind(this);
     this.getAllBonds = this.getAllBonds.bind(this);
+    this.getAllBondsFromDB = this.getAllBondsFromDB.bind(this);
   }
 
   // Validate and sanitize input, handle errors securely
@@ -459,6 +460,24 @@ class BondController {
   async getAllBonds(request, reply) {
     try {
       const bonds = await this.bondService.getAllBonds();
+      sendSuccess({
+        reply,
+        message: "All bonds fetched successfully",
+        data: bonds,
+      });
+    } catch (err) {
+      reply.log.error({ err }, "Error in getAllBonds");
+      sendError({
+        reply,
+        message: err.message || "Failed to fetch bonds",
+        statusCode: 500,
+      });
+    }
+  }
+
+  async getAllBondsFromDB(request, reply) {
+    try {
+      const bonds = await this.bondService.getAllBondsFromDB();
       sendSuccess({
         reply,
         message: "All bonds fetched successfully",

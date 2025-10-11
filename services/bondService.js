@@ -25,9 +25,13 @@ class BondService {
     this.gripService = new GripFinanceService();
   }
 
+  async getAllBondsFromDB(){
+    const bonds = await Bond.find({}).lean();
+    return bonds;
+  }
+
   async getAllBonds() {
     const bonds = await this.gripService.getAllBonds("68cc07d2b56f2c5b52a0d1b0");
-    console.log("Bonds:::::::::::::", bonds);
     return bonds;
   }
 
