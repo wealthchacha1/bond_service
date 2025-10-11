@@ -1,28 +1,13 @@
 // src/routes/bondRoutes.js
-const Bond = require("../models/bondsSchema");
-const { getFromRedis } = require("@wc/common-service");
-const { REDIS_KEYS } = require("../applicationConstants");
 const BondController = require("../controllers/bondsController");
 const BondsCategoryController = require("../controllers/bondsCategoryController");
 
 const {
-  getPopularBondsSchema,
-  getBondListByTypeSchema,
   getBondByIdSchema,
-  getIssuerPopularBondListSchema,
-  chachaComparesSchema,
-  recommendedBondsSchema,
-  compareBondsSchema,
   calculateBondSchema,
-  getSuggestedBondsSchema,
-  getAllGripBondsSchema,
-  getBondDetailsSchema,
-  getChachaPicksSchema,
   getAllBondsSchema,
-  getAllBondsFromDBSchema,
   getBondsByCategorySchema,
   updateBondsInCategorySchema,
-  getBondFilterOptionsSchema,
 } = require("../validators/validator");
 
 async function bondRoutes(fastify, opts) {
@@ -37,11 +22,7 @@ async function bondRoutes(fastify, opts) {
     { method: "GET", url: "/bonds/openapi.json" },
     { method: "GET", url: "/bonds/docs/static/" },
     { method: "GET", url: "/bonds/docs/static/*" },
-    { method: "GET", url: "/bonds/docs/*" },
-    {
-      method: "POST",
-      url: "/bonds/recommended-bonds",
-    },
+    { method: "GET", url: "/bonds/docs/*" }
   ];
 
   fastify.addHook("preHandler", async (req, reply) => {
@@ -69,79 +50,17 @@ async function bondRoutes(fastify, opts) {
     });
   });
 
+  fastify.get(
+    "/get-all-bonds",
+    { schema: getAllBondsSchema },
+    bondController.getAllBondsFromDB
+  );
+
   // User-facing APIs
   fastify.get(
     "/get-bond-by-id/:bondId",
     { schema: getBondByIdSchema },
     bondController.getBondById
-  );
-  // fastify.get(
-  //   "/get-chacha-picks",
-  //   { schema: getChachaPicksSchema },
-  //   bondController.getChachaPicks
-  // );
-  fastify.get(
-    "/get-bond-list-by-type",
-    { schema: getBondListByTypeSchema },
-    bondController.getBondListByType
-  );
-  fastify.get(
-    "/get-issuer-popular-bond-list",
-    { schema: getIssuerPopularBondListSchema },
-    bondController.getIssuerPopularBondList
-  );
-
-  fastify.get(
-    "/chacha-compares",
-    { schema: chachaComparesSchema },
-    bondController.getChachaCompares
-  );
-
-  fastify.post(
-    "/recommended-bonds",
-    { schema: recommendedBondsSchema },
-    bondController.getRecommendedBonds
-  );
-
-  fastify.get(
-    "/compare-bonds",
-    { schema: compareBondsSchema },
-    bondController.compareBonds
-  );
-
-  fastify.post(
-    "/suggested-bonds",
-    { schema: getSuggestedBondsSchema },
-    bondController.getSuggestedBonds
-  );
-
-  //calculate api
-  fastify.post(
-    "/calculate-bond",
-    { schema: calculateBondSchema },
-    bondController.calculateBond
-  );
-
-  fastify.get(
-    "/get-all-grip-bonds",
-    { schema: getAllGripBondsSchema },
-    bondController.getAllGripBonds
-  );
-
-  fastify.get(
-    "/get-bond-details",
-    { schema: getBondDetailsSchema },
-    bondController.getBondDetails
-  );
-
-  fastify.get("/get-kyc-url", bondController.getKYCUrl);
-
-  fastify.post("/create-grip-user", bondController.createGripUser);
-
-  fastify.get(
-    "/get-all-bonds",
-    { schema: getAllBondsSchema },
-    bondController.getAllBondsFromDB
   );
 
   // Bond Category Routes
@@ -151,16 +70,21 @@ async function bondRoutes(fastify, opts) {
     bondsCategoryController.getBondsByCategory
   );
 
+  //calculate api
+  fastify.post(
+    "/calculate-bond",
+    { schema: calculateBondSchema },
+    bondController.calculateBond
+  );
+
+  fastify.get("/get-kyc-url", bondController.getKYCUrl);
+
+  fastify.post("/create-grip-user", bondController.createGripUser);
+
   fastify.post(
     "/update-bonds-in-category",
     { schema: updateBondsInCategorySchema },
     bondsCategoryController.updateBondsInCategory
-  );
-
-  fastify.get(
-    "/get-bond-filter-options",
-    { schema: getBondFilterOptionsSchema },
-    bondsCategoryController.getFilterOptions
   );
 }
 
