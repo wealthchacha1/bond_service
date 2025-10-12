@@ -7,7 +7,8 @@ const {
   getAllBondsSchema,
   getBondsByCategorySchema,
   updateBondsInCategorySchema,
-  createGripUserSchema
+  createGripUserSchema,
+  getCheckoutUrlSchema,
 } = require("../validators/validator");
 
 async function bondRoutes(fastify, opts) {
@@ -76,7 +77,21 @@ async function bondRoutes(fastify, opts) {
     bondController.createGripUser
   );
 
-  fastify.get("/get-kyc-url", bondController.getKYCUrl);
+  fastify.get(
+    "/get-kyc-status",
+    bondController.getKYCStatus
+  );
+
+  fastify.get(
+    "/get-kyc-url", 
+    bondController.getKYCUrl
+  );
+
+  fastify.get(
+    "/get-checkout-url",
+    { schema: getCheckoutUrlSchema },
+    bondController.getCheckoutUrl
+  )
 
   fastify.post(
     "/update-bonds-in-category",

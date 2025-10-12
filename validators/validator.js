@@ -300,10 +300,21 @@ const createGripUserSchema = {
   },
 };
 
+const getCheckoutUrlSchema = {
+  querystring: {
+    type: "object",
+    properties: {
+      assetId: { type: "string" },
+      amount: { type: "number" },
+    },
+  },
+};
+
 module.exports = {
   getBondByIdSchema,
   getAllBondsSchema,
   getBondsByCategorySchema,
   updateBondsInCategorySchema,
   createGripUserSchema,
+  getCheckoutUrlSchema
 };

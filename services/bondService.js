@@ -125,24 +125,59 @@ class BondService {
   }
 
   /**
+   * Get KYC status from Grip service
+   * @param {Object} params - Parameters containing userId
+   * @returns {Promise<Object>} - KYC status
+   */
+  async getKYCStatus({ username }) {
+    try {
+      const result = await this.gripService.getKYCStatus(username);
+      return result;
+    } catch (error) {
+      this.logger.error({ error, username }, "Error getting KYC status");
+      throw error;
+    }
+  }
+
+  async getCheckoutUrl({ username, assetId, amount }) {
+    try {
+      const result = await this.gripService.getCheckoutUrl(username, assetId, amount);
+      return result;
+    } catch (error) {
+      this.logger.error({ error, username, assetId, amount }, "Error getting checkout URL");
+      throw error;
+    }
+  }
+
+  /**
    * Get KYC URL from Grip service
-   * @param {Object} params - Parameters containing username, assetId
+   * @param {Object} params - Parameters containing username
    * @returns {Promise<Object>} - KYC URL
    */
-  async getKYCUrl({ username, assetId }) {
+  async getKYCUrl({ username }) {
     try {
-      this.logger.info({ username, assetId }, "Getting KYC URL");
+      this.logger.info({ username }, "Getting KYC URL");
 
       const result = await this.gripService.getRedirectionUrlForKYC(
         username,
-        assetId
       );
 
       this.logger.info({ result }, "KYC URL generated");
-      console.log("KYC URL generated", result);
       return result;
     } catch (error) {
-      this.logger.error({ error, username, assetId }, "Error getting KYC URL");
+      this.logger.error({ error, username }, "Error getting KYC URL");
+      throw error;
+    }
+  }
+
+
+  async getCheckoutUrl({ username, assetId, amount }) {
+    try {
+      const result = await this.gripService.getCheckoutRedirectUrl(username, assetId, amount);
+      this.logger.info({ result }, "Checkout URL generated");
+      return result;
+    } catch (error) {
+      this.logger.error({ error, username, amount }, "Error getting checkout URL");
       throw error;
     }
   }

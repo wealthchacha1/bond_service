@@ -3,6 +3,9 @@ const { sendSuccess, sendError } = require("../utils/response");
 const mongoose = require("mongoose");
 const BondCategory = require("../models/bondsCategories");
 const axios = require("axios");
+const { getFromRedis } = require("@wc/common-service");
+const { REDIS_KEYS } = require("../applicationConstants");
+
 
 class BondController {
   constructor(fastifyLogger) {
@@ -14,6 +17,8 @@ class BondController {
     this.createGripUser = this.createGripUser.bind(this);
     this.getAllBonds = this.getAllBonds.bind(this);
     this.getAllBondsFromDB = this.getAllBondsFromDB.bind(this);
+    this.getKYCStatus = this.getKYCStatus.bind(this);
+    this.getCheckoutUrl = this.getCheckoutUrl.bind(this);
   }
 
   // Validate and sanitize input, handle errors securely
@@ -139,19 +144,58 @@ class BondController {
     }
   }
 
-  async getKYCUrl(request, reply) {
+  async getKYCStatus(request, reply) {
     try {
-      const { username, assetId } = request.query;
-      if (!username || !assetId) {
+      const { userId } = request;
+      if (!userId) {
         return sendError({
           reply,
-          message: "Missing required parameters: username, assetId",
+          message: "Missing required parameters: userId",
+          statusCode: 400,
+        });
+      }
+      const userDetails = await getFromRedis(REDIS_KEYS.WC_USER_DETAILS(userId));
+      const username = userDetails.gripUserName;
+      if (!username) {
+        return sendError({
+          reply,
+          message: "Please contact support",
+          statusCode: 400,
+        });
+      }
+      const status = await this.bondService.getKYCStatus({ username });
+      sendSuccess({ reply, message: "KYC status fetched successfully", data: status });
+    } catch (err) {
+      reply.log.error({ err }, "Error in getKYCStatus");
+      sendError({
+        reply,
+        message: err.message || "Failed to fetch KYC status",
+        statusCode: 400,
+      });
+    }
+  }
+
+  async getKYCUrl(request, reply) {
+    try {
+      const { userId } = request;
+      const userDetails = await getFromRedis(REDIS_KEYS.WC_USER_DETAILS(userId));
+      const username = userDetails.gripUserName;
+      if (!username) {
+        return sendError({
+          reply,
+          message: "Please contact support",
+          statusCode: 400,
+        });
+      }
+      if (!username) {
+        return sendError({
+          reply,
+          message: "Missing required parameters: username",
           statusCode: 400,
         });
       }
       const { redirectUrl } = await this.bondService.getKYCUrl({
         username,
-        assetId,
       });
       sendSuccess({
         reply,
@@ -165,6 +209,42 @@ class BondController {
       sendError({
         reply,
         message: err.message || "Failed to generate KYC URL",
+        statusCode: 400,
+      });
+    }
+  }
+
+  async getCheckoutUrl(request, reply) {
+    try {
+      const { userId } = request;
+      const userDetails = await getFromRedis(REDIS_KEYS.WC_USER_DETAILS(userId));
+      const username = userDetails.gripUserName;
+      const { assetId, amount } = request.query;
+      if (!username || !assetId || !amount) {
+        return sendError({
+          reply,
+          message: "Missing required parameters: username, assetId, amount",
+          statusCode: 400,
+        });
+      }
+      const result = await this.bondService.getCheckoutUrl({
+        username,
+        assetId,
+        amount,
+      });
+      sendSuccess({
+        reply,
+        message: "Checkout URL generated successfully",
+        data: {
+          checkoutUrl: result,
+        }
+      });
+    }
+    catch (err) {
+      reply.log.error({ err }, "Error in getCheckoutUrl");
+      sendError({
+        reply,
+        message: err.message || "Failed to generate checkout URL",
         statusCode: 400,
       });
     }
