@@ -8,6 +8,7 @@ const {
   getAllBondsSchema,
   getBondsByCategorySchema,
   updateBondsInCategorySchema,
+  createGripUserSchema
 } = require("../validators/validator");
 
 async function bondRoutes(fastify, opts) {
@@ -70,7 +71,11 @@ async function bondRoutes(fastify, opts) {
     bondsCategoryController.getBondsByCategory
   );
 
-  fastify.post("/create-grip-user", bondController.createGripUser);
+  fastify.post(
+    "/create-grip-user",
+    { schema: createGripUserSchema },
+    bondController.createGripUser
+  );
 
   //calculate api
   fastify.post(

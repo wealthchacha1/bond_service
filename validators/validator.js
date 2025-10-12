@@ -1159,6 +1159,29 @@ const getBondsByCategorySchema = {
   },
 };
 
+const createGripUserSchema = {
+  body: {
+    type: "object",
+    properties: {
+      emailID: { type: "string" },
+      phoneNumber: { type: "number" },
+      firstName: { type: "string" },
+      lastName: { type: "string" },
+    },
+    required: ["emailID", "phoneNumber", "firstName", "lastName"],
+  },
+  response: {
+    200: {
+      type: "object",
+      properties: {
+        status: { type: "string" },
+        message: { type: "string" },
+        data: { type: "object" },
+      },
+    },
+  },
+}
+
 const updateBondsInCategorySchema = {
   body: {
     type: "object",
@@ -1266,6 +1289,7 @@ const getBondFilterOptionsSchema = {
 };
 
 module.exports = {
+  createGripUserSchema,
   getPopularFdsSchema,
   chachaComparesSchema,
   getIssuerPopularFdListSchema,
