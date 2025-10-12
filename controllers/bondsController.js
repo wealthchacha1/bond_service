@@ -2,6 +2,7 @@ const BondService = require("../services/bondService");
 const { sendSuccess, sendError } = require("../utils/response");
 const mongoose = require("mongoose");
 const BondCategory = require("../models/bondsCategories");
+const axios = require("axios");
 
 class BondController {
   constructor(fastifyLogger) {
@@ -202,6 +203,31 @@ class BondController {
         lastName,
         countryCode,
       });
+
+      console.log("Grip user created successfully", result);
+
+      console.log({
+        userId: request.userId,
+        gripId: result,
+      }, {
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': request.headers.authorization
+        },
+      })
+      const response = await axios.post(`${process.env.AUTH_SERVICE_URL}/auth/update-user-grip-name`, {
+        userId: request.userId,
+        gripId: result,
+      }, {
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': request.headers.authorization
+        },
+      });
+
+      console.log('User Grip name updated successfully', response.data);
 
       sendSuccess({
         reply,
