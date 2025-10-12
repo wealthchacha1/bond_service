@@ -4,7 +4,6 @@ const BondsCategoryController = require("../controllers/bondsCategoryController"
 
 const {
   getBondByIdSchema,
-  calculateBondSchema,
   getAllBondsSchema,
   getBondsByCategorySchema,
   updateBondsInCategorySchema,
@@ -75,13 +74,6 @@ async function bondRoutes(fastify, opts) {
     "/create-grip-user",
     { schema: createGripUserSchema },
     bondController.createGripUser
-  );
-
-  //calculate api
-  fastify.post(
-    "/calculate-bond",
-    { schema: calculateBondSchema },
-    bondController.calculateBond
   );
 
   fastify.get("/get-kyc-url", bondController.getKYCUrl);
