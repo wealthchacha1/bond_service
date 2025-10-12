@@ -216,7 +216,7 @@ class BondController {
           'Authorization': request.headers.authorization
         },
       })
-      const response = await axios.post(`${process.env.AUTH_SERVICE_URL}/auth/update-user-grip-name`, {
+      const response = await axios.post(`${process.env.INTERNAL_API_BASE_URL}/auth/update-user-grip-name`, {
         userId: request.userId,
         gripId: result,
       }, {
