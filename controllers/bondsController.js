@@ -33,6 +33,8 @@ class BondController {
         "rating": bond.rating,
         "tags": bond.badges,
         "logo": bond.logo,
+        "financeCompanyName": bond.financeCompanyName,
+        "description": bond.description,
         "maxInvestment": calculatorData.assetCalcDetails.maxInvestment,
         "completedPercentage": bond.originalData.percentageCompletion,
         "perUnitPurchasePrice": calculatorData.assetCalcDetails.purchasePrice,
