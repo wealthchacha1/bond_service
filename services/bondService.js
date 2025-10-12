@@ -3,9 +3,7 @@
  * Includes methods for fetching, recommending, and comparing bonds.
  */
 const Bond = require("../models/bondsSchema");
-const {
-  BOND_STATUS,
-} = require("../applicationConstants");
+const { BOND_STATUS } = require("../applicationConstants");
 const { saveAdminLog, saveAuthLog } = require("../utils/auditLogs");
 
 // Import Grip Finance Service
@@ -141,10 +139,17 @@ class BondService {
 
   async getCheckoutUrl({ username, assetId, amount }) {
     try {
-      const result = await this.gripService.getCheckoutUrl(username, assetId, amount);
+      const result = await this.gripService.getCheckoutUrl(
+        username,
+        assetId,
+        amount
+      );
       return result;
     } catch (error) {
-      this.logger.error({ error, username, assetId, amount }, "Error getting checkout URL");
+      this.logger.error(
+        { error, username, assetId, amount },
+        "Error getting checkout URL"
+      );
       throw error;
     }
   }
@@ -154,12 +159,13 @@ class BondService {
    * @param {Object} params - Parameters containing username
    * @returns {Promise<Object>} - KYC URL
    */
-  async getKYCUrl({ username }) {
+  async getKYCUrl({ username, assetId }) {
     try {
       this.logger.info({ username }, "Getting KYC URL");
 
       const result = await this.gripService.getRedirectionUrlForKYC(
         username,
+        assetId
       );
 
       this.logger.info({ result }, "KYC URL generated");
@@ -170,14 +176,20 @@ class BondService {
     }
   }
 
-
   async getCheckoutUrl({ username, assetId, amount }) {
     try {
-      const result = await this.gripService.getCheckoutRedirectUrl(username, assetId, amount);
+      const result = await this.gripService.getCheckoutRedirectUrl(
+        username,
+        assetId,
+        amount
+      );
       this.logger.info({ result }, "Checkout URL generated");
       return result;
     } catch (error) {
-      this.logger.error({ error, username, amount }, "Error getting checkout URL");
+      this.logger.error(
+        { error, username, amount },
+        "Error getting checkout URL"
+      );
       throw error;
     }
   }

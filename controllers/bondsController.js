@@ -6,7 +6,6 @@ const axios = require("axios");
 const { getFromRedis } = require("@wc/common-service");
 const { REDIS_KEYS } = require("../applicationConstants");
 
-
 class BondController {
   constructor(fastifyLogger) {
     this.bondService = new BondService(fastifyLogger);
@@ -33,19 +32,19 @@ class BondController {
         amount: 1,
       });
       const finalResult = {
-        "ytm": bond.interestRate,
-        "remainingTenure": bond.originalData.TimeToMaturity,
-        "rating": bond.rating,
-        "tags": bond.badges,
-        "logo": bond.logo,
-        "financeCompanyName": bond.financeCompanyName,
-        "description": bond.description,
-        "maxInvestment": calculatorData.assetCalcDetails.maxInvestment,
-        "completedPercentage": bond.originalData.percentageCompletion,
-        "perUnitPurchasePrice": calculatorData.assetCalcDetails.purchasePrice,
-        "perUnitReturnAmount": calculatorData.assetCalcDetails.preTaxReturns,
-        "maxUnits": calculatorData.assetCalcDetails.maxLots
-      }
+        ytm: bond.interestRate,
+        remainingTenure: bond.originalData.TimeToMaturity,
+        rating: bond.rating,
+        tags: bond.badges,
+        logo: bond.logo,
+        financeCompanyName: bond.financeCompanyName,
+        description: bond.description,
+        maxInvestment: calculatorData.assetCalcDetails.maxInvestment,
+        completedPercentage: bond.originalData.percentageCompletion,
+        perUnitPurchasePrice: calculatorData.assetCalcDetails.purchasePrice,
+        perUnitReturnAmount: calculatorData.assetCalcDetails.preTaxReturns,
+        maxUnits: calculatorData.assetCalcDetails.maxLots,
+      };
       sendSuccess({ reply, message: "Bond fetched", data: finalResult });
     } catch (err) {
       reply.log.error({ err }, "Error in getBondById");
@@ -154,7 +153,9 @@ class BondController {
           statusCode: 400,
         });
       }
-      const userDetails = await getFromRedis(REDIS_KEYS.WC_USER_DETAILS(userId));
+      const userDetails = await getFromRedis(
+        REDIS_KEYS.WC_USER_DETAILS(userId)
+      );
       const username = userDetails.gripUserName;
       if (!username) {
         return sendError({
@@ -164,7 +165,11 @@ class BondController {
         });
       }
       const status = await this.bondService.getKYCStatus({ username });
-      sendSuccess({ reply, message: "KYC status fetched successfully", data: status });
+      sendSuccess({
+        reply,
+        message: "KYC status fetched successfully",
+        data: status,
+      });
     } catch (err) {
       reply.log.error({ err }, "Error in getKYCStatus");
       sendError({
@@ -178,7 +183,11 @@ class BondController {
   async getKYCUrl(request, reply) {
     try {
       const { userId } = request;
-      const userDetails = await getFromRedis(REDIS_KEYS.WC_USER_DETAILS(userId));
+      const { id } = request.query;
+      const userDetails = await getFromRedis(
+        REDIS_KEYS.WC_USER_DETAILS(userId)
+      );
+
       const username = userDetails.gripUserName;
       if (!username) {
         return sendError({
@@ -194,8 +203,16 @@ class BondController {
           statusCode: 400,
         });
       }
+      if (!id) {
+        return sendError({
+          reply,
+          message: "Missing required parameters: id",
+          statusCode: 400,
+        });
+      }
       const { redirectUrl } = await this.bondService.getKYCUrl({
         username,
+        assetId: id,
       });
       sendSuccess({
         reply,
@@ -217,7 +234,9 @@ class BondController {
   async getCheckoutUrl(request, reply) {
     try {
       const { userId } = request;
-      const userDetails = await getFromRedis(REDIS_KEYS.WC_USER_DETAILS(userId));
+      const userDetails = await getFromRedis(
+        REDIS_KEYS.WC_USER_DETAILS(userId)
+      );
       const username = userDetails.gripUserName;
       const { assetId, amount } = request.query;
       if (!username || !assetId || !amount) {
@@ -237,10 +256,9 @@ class BondController {
         message: "Checkout URL generated successfully",
         data: {
           checkoutUrl: result,
-        }
+        },
       });
-    }
-    catch (err) {
+    } catch (err) {
       reply.log.error({ err }, "Error in getCheckoutUrl");
       sendError({
         reply,
@@ -288,28 +306,35 @@ class BondController {
 
       console.log("Grip user created successfully", result);
 
-      console.log({
-        userId: request.userId,
-        gripId: result,
-      }, {
-        headers: {
-          'accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': request.headers.authorization
+      console.log(
+        {
+          userId: request.userId,
+          gripId: result,
         },
-      })
-      const response = await axios.post(`${process.env.INTERNAL_API_BASE_URL}/auth/update-user-grip-name`, {
-        userId: request.userId,
-        gripId: result,
-      }, {
-        headers: {
-          'accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': request.headers.authorization
+        {
+          headers: {
+            accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: request.headers.authorization,
+          },
+        }
+      );
+      const response = await axios.post(
+        `${process.env.INTERNAL_API_BASE_URL}/auth/update-user-grip-name`,
+        {
+          userId: request.userId,
+          gripId: result,
         },
-      });
+        {
+          headers: {
+            accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: request.headers.authorization,
+          },
+        }
+      );
 
-      console.log('User Grip name updated successfully', response.data);
+      console.log("User Grip name updated successfully", response.data);
 
       sendSuccess({
         reply,
