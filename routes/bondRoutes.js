@@ -13,7 +13,7 @@ const {
 
 async function bondRoutes(fastify, opts) {
   const bondController = new BondController(fastify.log);
-  const bondsCategoryController = new BondsCategoryController(fastify);
+  const bondsCategoryController = new BondsCategoryController(fastify.log);
 
   // Add all open (public) routes here
   const openRoutes = [
@@ -23,7 +23,7 @@ async function bondRoutes(fastify, opts) {
     { method: "GET", url: "/bonds/openapi.json" },
     { method: "GET", url: "/bonds/docs/static/" },
     { method: "GET", url: "/bonds/docs/static/*" },
-    { method: "GET", url: "/bonds/docs/*" }
+    { method: "GET", url: "/bonds/docs/*" },
   ];
 
   fastify.addHook("preHandler", async (req, reply) => {
@@ -77,21 +77,15 @@ async function bondRoutes(fastify, opts) {
     bondController.createGripUser
   );
 
-  fastify.get(
-    "/get-kyc-status",
-    bondController.getKYCStatus
-  );
+  fastify.get("/get-kyc-status", bondController.getKYCStatus);
 
-  fastify.get(
-    "/get-kyc-url", 
-    bondController.getKYCUrl
-  );
+  fastify.get("/get-kyc-url", bondController.getKYCUrl);
 
   fastify.get(
     "/get-checkout-url",
     { schema: getCheckoutUrlSchema },
     bondController.getCheckoutUrl
-  )
+  );
 
   fastify.post(
     "/update-bonds-in-category",
