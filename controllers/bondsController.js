@@ -183,7 +183,6 @@ class BondController {
   async getKYCUrl(request, reply) {
     try {
       const { userId } = request;
-      const { id } = request.query;
       const userDetails = await getFromRedis(
         REDIS_KEYS.WC_USER_DETAILS(userId)
       );
@@ -196,23 +195,8 @@ class BondController {
           statusCode: 400,
         });
       }
-      if (!username) {
-        return sendError({
-          reply,
-          message: "Missing required parameters: username",
-          statusCode: 400,
-        });
-      }
-      if (!id) {
-        return sendError({
-          reply,
-          message: "Missing required parameters: id",
-          statusCode: 400,
-        });
-      }
       const { redirectUrl } = await this.bondService.getKYCUrl({
-        username,
-        assetId: id,
+        username
       });
       sendSuccess({
         reply,
