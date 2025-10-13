@@ -310,25 +310,6 @@ const getCheckoutUrlSchema = {
   },
 };
 
-const getKycUrlSchema = {
-  querystring: {
-    type: "object",
-    properties: {
-      id: { type: "number" }, //assetId
-    },
-  },
-  response: {
-    200: {
-      type: "object",
-      properties: {
-        status: { type: "string" },
-        message: { type: "string" },
-        data: { type: "object" },
-      },
-    },
-  },
-};
-
 module.exports = {
   getBondByIdSchema,
   getAllBondsSchema,
@@ -336,5 +317,4 @@ module.exports = {
   updateBondsInCategorySchema,
   createGripUserSchema,
   getCheckoutUrlSchema,
-  getKycUrlSchema,
 };
