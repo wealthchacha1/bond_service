@@ -136,7 +136,7 @@ const bondSchema = new mongoose.Schema(
 );
 
 // Indexes for better performance
-bondSchema.index({ id: 1 });
+// Note: id already has unique index from "unique: true" option, no need to duplicate
 bondSchema.index({ financeCompanyName: 1 });
 bondSchema.index({ status: 1 });
 bondSchema.index({ effectiveYield: -1 });
