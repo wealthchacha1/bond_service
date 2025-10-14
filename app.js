@@ -1,7 +1,7 @@
 require("dotenv").config();
 const path = require("path");
 const { connectRedis, verifyToken } = require("@wc/common-service");
-// const { kafkaSetup } = require("./kafka/kafkaClient"); // Removed - function doesn't exist
+const { kafkaSetup } = require("./kafka/kafkaClient");
 
 // require("./services/financeCompanyServiceFactory"); // Removed - file doesn't exist
 
@@ -90,6 +90,8 @@ fastify.decorate("auth", async function (req, reply) {
       ? new Date().getFullYear() - new Date(user.dob).getFullYear()
       : null;
     req.gender = user.gender;
+    req.parentIFAId = user.parentIFAId || null;
+    req.role = user.role;
 
     //attach other fields if needed
   } catch (err) {
@@ -122,8 +124,9 @@ const start = async () => {
     await connectRedis(fastify);
     fastify.log.info("Redis connection established successfully");
 
-    // await kafkaSetup(fastify); // Removed - function doesn't exist
-    // fastify.log.info("Kafka initialized successfully");
+    // Step 3: Initialize Kafka
+    await kafkaSetup(fastify);
+    fastify.log.info("Kafka initialized successfully");
 
     fastify.listen({ port: process.env.PORT || 4000, host: "0.0.0.0" });
 

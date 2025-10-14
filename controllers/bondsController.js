@@ -3,7 +3,7 @@ const { sendSuccess, sendError } = require("../utils/response");
 const mongoose = require("mongoose");
 const BondCategory = require("../models/bondsCategories");
 const axios = require("axios");
-const { getFromRedis } = require("@wc/common-service");
+const { getFromRedis, sendMessage } = require("@wc/common-service");
 const { REDIS_KEYS } = require("../applicationConstants");
 
 class BondController {
@@ -196,7 +196,7 @@ class BondController {
         });
       }
       const { redirectUrl } = await this.bondService.getKYCUrl({
-        username
+        username,
       });
       sendSuccess({
         reply,
@@ -217,7 +217,7 @@ class BondController {
 
   async getCheckoutUrl(request, reply) {
     try {
-      const { userId } = request;
+      const { userId, parentIFAId } = request;
       const userDetails = await getFromRedis(
         REDIS_KEYS.WC_USER_DETAILS(userId)
       );
@@ -230,11 +230,46 @@ class BondController {
           statusCode: 400,
         });
       }
+
+      // Get checkout URL
       const result = await this.bondService.getCheckoutUrl({
         username,
         assetId,
         amount,
       });
+
+      // Publish message to Kafka to create bond folio
+      try {
+        const bondFolioPayload = {
+          gripUserName: username,
+          userId,
+          parentIFAId: parentIFAId || null,
+          assetID: parseInt(assetId),
+          units: parseInt(amount), // amount is actually units for bonds
+          orderStatus: "pending",
+          transactionType: "BUY",
+          eventName: "CHECKOUT_URL_GENERATED",
+          eventTime: new Date().toISOString(),
+        };
+
+        await sendMessage(
+          "BOND_FOLIO_CREATE",
+          bondFolioPayload,
+          "BOND_FOLIO_CREATE"
+        );
+
+        console.log(
+          { bondFolioPayload },
+          "Published bond folio creation message to Kafka"
+        );
+      } catch (kafkaErr) {
+        // Log but don't fail the request if Kafka fails
+        console.log(
+          { kafkaErr },
+          "Failed to publish bond folio message to Kafka"
+        );
+      }
+
       sendSuccess({
         reply,
         message: "Checkout URL generated successfully",
