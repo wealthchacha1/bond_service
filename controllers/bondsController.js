@@ -44,6 +44,7 @@ class BondController {
         perUnitPurchasePrice: calculatorData.assetCalcDetails.purchasePrice,
         perUnitReturnAmount: calculatorData.assetCalcDetails.preTaxReturns,
         maxUnits: calculatorData.assetCalcDetails.maxLots,
+        minUnits: calculatorData.assetCalcDetails.minLots,
       };
       sendSuccess({ reply, message: "Bond fetched", data: finalResult });
     } catch (err) {
