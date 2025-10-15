@@ -182,7 +182,7 @@ class BondController {
 
   async getKYCUrl(request, reply) {
     try {
-      const { userId } = request;
+      const { userId } = request.query;
       const userDetails = await getFromRedis(
         REDIS_KEYS.WC_USER_DETAILS(userId)
       );
@@ -197,6 +197,7 @@ class BondController {
       }
       const { redirectUrl } = await this.bondService.getKYCUrl({
         username,
+        userId
       });
       sendSuccess({
         reply,
@@ -217,7 +218,8 @@ class BondController {
 
   async getCheckoutUrl(request, reply) {
     try {
-      const { userId, parentIFAId } = request;
+      const { userId } = request.query;
+      const { parentIFAId } = request;
       const userDetails = await getFromRedis(
         REDIS_KEYS.WC_USER_DETAILS(userId)
       );

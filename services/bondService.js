@@ -159,18 +159,19 @@ class BondService {
    * @param {Object} params - Parameters containing username
    * @returns {Promise<Object>} - KYC URL
    */
-  async getKYCUrl({ username }) {
+  async getKYCUrl({ username, userId }) {
     try {
       this.logger.info({ username }, "Getting KYC URL");
 
       const result = await this.gripService.getRedirectionUrlForKYC(
         username,
+        userId
       );
 
       this.logger.info({ result }, "KYC URL generated");
       return result;
     } catch (error) {
-      this.logger.error({ error, username }, "Error getting KYC URL");
+      this.logger.error({ error, username, userId }, "Error getting KYC URL");
       throw error;
     }
   }
