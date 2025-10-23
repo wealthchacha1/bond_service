@@ -1,5 +1,6 @@
 const BondService = require("../services/bondService");
 const { sendSuccess, sendError } = require("../utils/response");
+const { getUserToken } = require("../utils/helper");
 const mongoose = require("mongoose");
 const BondCategory = require("../models/bondsCategories");
 const axios = require("axios");
@@ -46,7 +47,19 @@ class BondController {
         maxUnits: calculatorData.assetCalcDetails.maxLots,
         minUnits: calculatorData.assetCalcDetails.minLots,
       };
-      sendSuccess({ reply, message: "Bond fetched", data: finalResult });
+      if (request.query?.isRedirection === "true" && request.query?.userId) {
+        const token = await getUserToken(request.query.userId);
+        sendSuccess({
+          reply,
+          message: "Bond fetched",
+          data: finalResult,
+          extraData: {
+            token: token,
+          },
+        });
+      } else {
+        sendSuccess({ reply, message: "Bond fetched", data: finalResult });
+      }
     } catch (err) {
       reply.log.error({ err }, "Error in getBondById");
       sendError({ reply, message: err.message, statusCode: 400 });

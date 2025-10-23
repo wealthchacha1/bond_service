@@ -10,6 +10,7 @@ const bondResponse = {
       success: { type: "boolean" },
       statusCode: { type: "number" },
       message: { type: "string" },
+      token: { type: "string" },
       data: {
         type: "array",
         items: {
@@ -83,6 +84,13 @@ const getBondByIdSchema = {
     type: "object",
     properties: {
       bondId: { type: "number" },
+    },
+    querystring: {
+      type: "object",
+      properties: {
+        userId: { type: "string" },
+        isRedirection: { type: "string" },
+      },
     },
     required: ["bondId"],
   },
