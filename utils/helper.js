@@ -1,5 +1,9 @@
 const Decimal = require("decimal.js");
-const { getFromRedis } = require("@wc/common-service");
+const {
+  getFromRedis,
+  saveToRedis,
+  generateToken,
+} = require("@wc/common-service");
 const { REDIS_KEYS } = require("../applicationConstants");
 
 /**
@@ -133,6 +137,37 @@ function generateBondSubtitle({ bond }) {
 
   return subtitles.slice(0, 2).join(" · ");
 }
+/**
+ * Get user token from Redis or generate a new one if not present
+ * @param {string} userId - The user ID to get/generate token for
+ * @returns {Promise<string>} The user token
+ * @throws {Error} If user details are not found in Redis
+ */
+async function getUserToken(userId) {
+  const userKey = `WC_USER_TOKEN:${userId}`;
+  let redisToken = await getFromRedis(userKey);
+
+  // Generate token if not present in Redis
+  if (!redisToken) {
+    // Get user details to generate token
+    const userDetails = await getFromRedis(REDIS_KEYS.WC_USER_DETAILS(userId));
+    console.log(userDetails, "user details is>>>>.");
+    if (userDetails) {
+      const parsedUserDetails =
+        typeof userDetails === "string" ? JSON.parse(userDetails) : userDetails;
+
+      redisToken = generateToken({ user: parsedUserDetails });
+      await saveToRedis(userKey, redisToken); // 7 days expiry
+
+      console.log(`Generated new token for user ${userId}`);
+    } else {
+      console.error(`User details not found for userId: ${userId}`);
+      throw new Error("User details not found. Cannot generate token.");
+    }
+  }
+
+  return redisToken;
+}
 
 module.exports = {
   calculateInterestOn1LakhCumulative,
@@ -140,4 +175,5 @@ module.exports = {
   generateFdSubtitle,
   formatTenureToYearsMonths,
   generateBondSubtitle,
+  getUserToken,
 };
