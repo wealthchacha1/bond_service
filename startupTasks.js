@@ -23,17 +23,21 @@ async function runGripBondInitialFetch(logger) {
     let updatedCount = 0;
     let errorCount = 0;
 
+    // Collect IDs of bonds received from API
+    const receivedBondIds = bondsData.map(bond => bond.id);
+
     for (const bondData of bondsData) {
       try {
         // Check if bond already exists
         const existingBond = await Bond.findOne({ id: bondData.id });
         
         if (existingBond) {
-          // Update existing bond
+          // Update existing bond and ensure status is ACTIVE
           await Bond.findOneAndUpdate(
             { id: bondData.id },
             { 
               ...bondData,
+              status: 'ACTIVE',
               updatedAt: new Date()
             },
             { new: true }
@@ -50,10 +54,33 @@ async function runGripBondInitialFetch(logger) {
       }
     }
 
+    // Mark bonds as INACTIVE if they are not in the received data
+    let inactivatedCount = 0;
+    try {
+      const inactivateResult = await Bond.updateMany(
+        { 
+          id: { $nin: receivedBondIds },
+          status: 'ACTIVE'
+        },
+        { 
+          status: 'INACTIVE',
+          updatedAt: new Date()
+        }
+      );
+      inactivatedCount = inactivateResult.modifiedCount || 0;
+      
+      if (inactivatedCount > 0) {
+        logger.info(`Marked ${inactivatedCount} bonds as INACTIVE (not found in API response)`);
+      }
+    } catch (inactivateError) {
+      logger.error({ inactivateError }, "Error marking bonds as INACTIVE");
+    }
+
     const result = {
       totalReceived: bondsData.length,
       stored: storedCount,
       updated: updatedCount,
+      inactivated: inactivatedCount,
       errors: errorCount
     };
 
