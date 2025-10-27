@@ -19,7 +19,11 @@ class BondService {
   async getAllBondsFromDB({ query = {}, limit = 4, page = 1 }) {
     const skip = (page - 1) * limit;
     query.status = BOND_STATUS.ACTIVE;
-    const bonds = await Bond.find(query).skip(skip).limit(limit).exec();
+    const bonds = await Bond.find(query)
+      .sort({ tenureMonths: -1 })
+      .skip(skip)
+      .limit(limit)
+      .exec();
     const totalBonds = (await Bond.countDocuments(query)) || 0;
     const totalPages = Math.ceil(totalBonds / limit);
     return { bonds, totalBonds, totalPages };
