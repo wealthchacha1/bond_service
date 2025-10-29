@@ -211,7 +211,7 @@ class BondController {
       }
       const { redirectUrl } = await this.bondService.getKYCUrl({
         username,
-        userId
+        userId,
       });
       sendSuccess({
         reply,
@@ -416,14 +416,6 @@ class BondController {
         }).populate("bondIds");
         const skip = (page - 1) * limit;
 
-        if (!category || !category.bondIds) {
-          return sendError({
-            reply,
-            message: "Invalid Bond type",
-            statusCode: 400,
-          });
-        }
-
         if (category) {
           bonds = category.bondIds.slice(skip, skip + limit);
           totalBonds = category.bondIds.length || 0;
@@ -435,7 +427,7 @@ class BondController {
       sendSuccess({
         reply,
         message: "All bonds fetched successfully",
-        data: bonds || data?.bonds,
+        data: bonds || data?.bonds || [],
         extraData: {
           totalBonds: totalBonds || data?.totalBonds || 0,
           totalPages: Math.ceil(totalBonds / limit) || data?.totalPages,
