@@ -16,9 +16,14 @@ class BondService {
     this.gripService = new GripFinanceService();
   }
 
-  async getAllBondsFromDB({ query = {}, limit = 4, page = 1 }) {
+  async getAllBondsFromDB({
+    query = {},
+    limit = 4,
+    page = 1,
+    allBonds = false,
+  }) {
     const skip = (page - 1) * limit;
-    query.status = BOND_STATUS.ACTIVE;
+    if (!allBonds) query.status = BOND_STATUS.ACTIVE;
     const bonds = await Bond.find(query)
       .sort({ tenureMonths: -1 })
       .skip(skip)
