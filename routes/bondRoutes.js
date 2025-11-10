@@ -40,7 +40,7 @@ async function bondRoutes(fastify, opts) {
     // Skip authentication if isRedirection is true (treat like open route)
     if (req.query?.isRedirection === "true") {
       return; // No authentication needed
-    }  
+    }
     if (!isOpen) {
       await fastify.auth(req, reply);
     }

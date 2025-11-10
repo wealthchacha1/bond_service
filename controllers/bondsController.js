@@ -406,7 +406,7 @@ class BondController {
 
   async getAllBondsFromDB(request, reply) {
     try {
-      const { type, limit, page } = request.query;
+      const { type, limit, page, allBonds } = request.query;
       const query = {};
       let bonds, totalBonds, data;
 
@@ -421,7 +421,12 @@ class BondController {
           totalBonds = category.bondIds.length || 0;
         }
       } else {
-        data = await this.bondService.getAllBondsFromDB({ query, limit, page });
+        data = await this.bondService.getAllBondsFromDB({
+          query,
+          limit,
+          page,
+          allBonds,
+        });
       }
 
       sendSuccess({

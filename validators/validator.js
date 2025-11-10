@@ -108,6 +108,7 @@ const getAllBondsSchema = {
       type: {
         type: "string",
       },
+      allBonds: { type: "boolean", default: false },
     },
   },
   response: {
