@@ -171,7 +171,7 @@ async function getUserToken(userId) {
   }
 
   // Generate new token if not present in Redis or verification failed
-  if (!redisToken || !isTokenValid) {
+  if (!isTokenValid || !redisToken) {
     // Get user details to generate token
     const userDetails = await getFromRedis(
       `${REDIS_KEYS.WC_USER_DETAILS(userId)}`
