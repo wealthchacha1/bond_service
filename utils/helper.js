@@ -3,6 +3,7 @@ const {
   getFromRedis,
   saveToRedis,
   generateToken,
+  verifyToken,
 } = require("@wc/common-service");
 const { REDIS_KEYS } = require("../applicationConstants");
 
@@ -146,12 +147,36 @@ function generateBondSubtitle({ bond }) {
 async function getUserToken(userId) {
   const userKey = `WC_USER_TOKEN:${userId}`;
   let redisToken = await getFromRedis(userKey);
+  let isTokenValid = false;
 
-  // Generate token if not present in Redis
-  if (!redisToken) {
+  // Verify token if it exists in Redis
+  if (redisToken) {
+    try {
+      const verifiedUser = await verifyToken(redisToken);
+      if (verifiedUser && verifiedUser.id === userId) {
+        isTokenValid = true;
+        console.log(`Token verified successfully for user ${userId}`);
+      } else {
+        console.log(
+          `Token verification failed for user ${userId} - user mismatch`
+        );
+      }
+    } catch (error) {
+      console.log(
+        `Token verification failed for user ${userId}:`,
+        error.message
+      );
+      isTokenValid = false;
+    }
+  }
+
+  // Generate new token if not present in Redis or verification failed
+  if (!redisToken || !isTokenValid) {
     // Get user details to generate token
-    const userDetails = await getFromRedis(REDIS_KEYS.WC_USER_DETAILS(userId));
-    console.log(userDetails, "user details is>>>>.");
+    const userDetails = await getFromRedis(
+      `${REDIS_KEYS.WC_USER_DETAILS(userId)}`
+    );
+
     if (userDetails) {
       const parsedUserDetails =
         typeof userDetails === "string" ? JSON.parse(userDetails) : userDetails;
