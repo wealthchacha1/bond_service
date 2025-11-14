@@ -153,13 +153,17 @@ async function getUserToken(userId) {
   if (redisToken) {
     try {
       const verifiedUser = await verifyToken(redisToken);
-      if (verifiedUser && verifiedUser.id === userId) {
+      if (verifiedUser) {
         isTokenValid = true;
         console.log(`Token verified successfully for user ${userId}`);
       } else {
+        // Token is expired or invalid (verifyToken returns null for expired tokens)
         console.log(
-          `Token verification failed for user ${userId} - user mismatch`
+          `Token verification failed for user ${userId} - token expired or user mismatch`
         );
+        isTokenValid = false;
+        // Clear the expired token from Redis
+        redisToken = null;
       }
     } catch (error) {
       console.log(
@@ -167,6 +171,8 @@ async function getUserToken(userId) {
         error.message
       );
       isTokenValid = false;
+      // Clear the invalid token from Redis
+      redisToken = null;
     }
   }
 
