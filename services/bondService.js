@@ -24,6 +24,7 @@ class BondService {
   }) {
     const skip = (page - 1) * limit;
     if (!allBonds) query.status = BOND_STATUS.ACTIVE;
+    console.log("Querying bonds with:", query);
     const bonds = await Bond.find(query)
       .sort({ tenureMonths: -1 })
       .skip(skip)

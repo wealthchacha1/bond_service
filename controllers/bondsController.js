@@ -410,7 +410,9 @@ class BondController {
       const query = {};
       let bonds, totalBonds, data;
 
+      console.log("type:", type, "limit:", limit, "page:", page, "allBonds:", allBonds);
       if (type) {
+        console.log("Fetching bonds for category:", type);
         const category = await BondCategory.findOne({
           categoryName: type,
         }).populate("bondIds");
@@ -422,6 +424,7 @@ class BondController {
           totalBonds = activeBonds.length || 0;
         }
       } else {
+        console.log("Fetching bonds with general query");
         data = await this.bondService.getAllBondsFromDB({
           query,
           limit,
