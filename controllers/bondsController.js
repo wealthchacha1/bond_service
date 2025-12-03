@@ -449,7 +449,7 @@ class BondController {
         extraData: {
           totalBonds: totalBonds || data?.totalBonds || 0,
           totalPages: totalBonds ? Math.ceil(totalBonds / limit) : (data?.totalPages || 0),
-          currentPage: useZeroBasedPagination ? normalizedPage : normalizedPage,
+          currentPage: pageToUse,
         },
       });
     } catch (err) {
