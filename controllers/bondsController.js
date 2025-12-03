@@ -406,26 +406,39 @@ class BondController {
 
   async getAllBondsFromDB(request, reply) {
     try {
-      const { type, limit, page, pageNumber, allBonds } = request.query;
+      const { type, categoryName, limit, page, pageNumber, allBonds } = request.query;
       const query = {};
       let bonds, totalBonds, data;
 
       // Handle both page (1-based) and pageNumber (0-based) parameters
       // Priority: page > pageNumber > default to 1
       let normalizedPage = 1;
+      let useZeroBasedPagination = false;
+      
       if (page && page > 0) {
         normalizedPage = page;
+        useZeroBasedPagination = false;
       } else if (pageNumber !== undefined && pageNumber >= 0) {
-        normalizedPage = pageNumber + 1; // Convert 0-based to 1-based
+        normalizedPage = pageNumber; // Keep as 0-based for direct calculation
+        useZeroBasedPagination = true;
       }
 
-      console.log("type:", type, "limit:", limit, "page:", page, "pageNumber:", pageNumber, "normalizedPage:", normalizedPage, "allBonds:", allBonds);
-      if (type) {
-        console.log("Fetching bonds for category:", type);
+      // Use categoryName or type (for backwards compatibility)
+      const categoryToSearch = categoryName || type;
+
+      console.log("categoryName:", categoryName, "type:", type, "categoryToSearch:", categoryToSearch, "limit:", limit, "page:", page, "pageNumber:", pageNumber, "normalizedPage:", normalizedPage, "useZeroBasedPagination:", useZeroBasedPagination, "allBonds:", allBonds);
+      
+      if (categoryToSearch) {
+        console.log("Fetching bonds for category:", categoryToSearch);
         const category = await BondCategory.findOne({
-          categoryName: type,
+          categoryName: categoryToSearch,
         }).populate("bondIds");
-        const skip = (normalizedPage - 1) * limit;
+        let skip;
+        if (useZeroBasedPagination) {
+          skip = normalizedPage * limit; // 0-based: pageNumber=0 means skip=0, pageNumber=1 means skip=limit
+        } else {
+          skip = (normalizedPage - 1) * limit; // 1-based: page=1 means skip=0, page=2 means skip=limit
+        }
 
         if (category) {
           const activeBonds = category.bondIds.filter(bond => bond.status === 'ACTIVE');
@@ -434,10 +447,12 @@ class BondController {
         }
       } else {
         console.log("Fetching bonds with general query");
+        // Convert to 1-based page for the service layer
+        const serviceePage = useZeroBasedPagination ? normalizedPage + 1 : normalizedPage;
         data = await this.bondService.getAllBondsFromDB({
           query,
           limit,
-          page: normalizedPage,
+          page: serviceePage,
           allBonds,
         });
       }
@@ -449,6 +464,7 @@ class BondController {
         extraData: {
           totalBonds: totalBonds || data?.totalBonds || 0,
           totalPages: totalBonds ? Math.ceil(totalBonds / limit) : (data?.totalPages || 0),
+          currentPage: useZeroBasedPagination ? normalizedPage : normalizedPage,
         },
       });
     } catch (err) {

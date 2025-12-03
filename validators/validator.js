@@ -109,6 +109,9 @@ const getAllBondsSchema = {
       type: {
         type: "string",
       },
+      categoryName: {
+        type: "string",
+      },
       allBonds: { type: "boolean", default: false },
     },
   },
