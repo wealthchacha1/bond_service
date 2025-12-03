@@ -412,17 +412,7 @@ class BondController {
 
       // Handle both page (1-based) and pageNumber (0-based) parameters
       // Priority: page > pageNumber > default to 1
-      let normalizedPage = 1;
-      let useZeroBasedPagination = false;
-      
-      if (page && page > 0) {
-        normalizedPage = page;
-        useZeroBasedPagination = false;
-      } else if (pageNumber !== undefined && pageNumber >= 0) {
-        normalizedPage = pageNumber; // Keep as 0-based for direct calculation
-        useZeroBasedPagination = true;
-      }
-
+      const pageToUse = page || pageNumber;
       // Use categoryName or type (for backwards compatibility)
       const categoryToSearch = type;
 
@@ -433,12 +423,7 @@ class BondController {
         const category = await BondCategory.findOne({
           categoryName: categoryToSearch,
         }).populate("bondIds");
-        let skip;
-        if (useZeroBasedPagination) {
-          skip = normalizedPage * limit; // 0-based: pageNumber=0 means skip=0, pageNumber=1 means skip=limit
-        } else {
-          skip = (normalizedPage - 1) * limit; // 1-based: page=1 means skip=0, page=2 means skip=limit
-        }
+        const skip = (pageToUse - 1) * limit; // 0-based: pageNumber=0 means skip=0, pageNumber=1 means skip=limit
 
         if (category) {
           const activeBonds = category.bondIds.filter(bond => bond.status === 'ACTIVE');
@@ -448,7 +433,7 @@ class BondController {
       } else {
         console.log("Fetching bonds with general query");
         // Convert to 1-based page for the service layer
-        const serviceePage = useZeroBasedPagination ? normalizedPage + 1 : normalizedPage;
+        const serviceePage = page || pageNumber;
         data = await this.bondService.getAllBondsFromDB({
           query,
           limit,
