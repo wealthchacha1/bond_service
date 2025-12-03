@@ -416,7 +416,7 @@ class BondController {
       // Use categoryName or type (for backwards compatibility)
       const categoryToSearch = type;
 
-      console.log("categoryName:", categoryName, "type:", type, "categoryToSearch:", categoryToSearch, "limit:", limit, "page:", page, "pageNumber:", pageNumber, "normalizedPage:", normalizedPage, "useZeroBasedPagination:", useZeroBasedPagination, "allBonds:", allBonds);
+      console.log("categoryName:", categoryName, "type:", type, "categoryToSearch:", categoryToSearch, "limit:", limit, "page:", page, "pageNumber:", pageNumber, "allBonds:", allBonds);
       
       if (categoryToSearch) {
         console.log("Fetching bonds for category:", categoryToSearch);
