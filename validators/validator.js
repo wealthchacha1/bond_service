@@ -105,6 +105,7 @@ const getAllBondsSchema = {
     properties: {
       limit: { type: "number", default: 4, minimum: 1 },
       page: { type: "number", default: 1, minimum: 1 },
+      pageNumber: { type: "number", default: 0, minimum: 0 },
       type: {
         type: "string",
       },

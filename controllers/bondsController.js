@@ -406,17 +406,26 @@ class BondController {
 
   async getAllBondsFromDB(request, reply) {
     try {
-      const { type, limit, page, allBonds } = request.query;
+      const { type, limit, page, pageNumber, allBonds } = request.query;
       const query = {};
       let bonds, totalBonds, data;
 
-      console.log("type:", type, "limit:", limit, "page:", page, "allBonds:", allBonds);
+      // Handle both page (1-based) and pageNumber (0-based) parameters
+      // Priority: page > pageNumber > default to 1
+      let normalizedPage = 1;
+      if (page && page > 0) {
+        normalizedPage = page;
+      } else if (pageNumber !== undefined && pageNumber >= 0) {
+        normalizedPage = pageNumber + 1; // Convert 0-based to 1-based
+      }
+
+      console.log("type:", type, "limit:", limit, "page:", page, "pageNumber:", pageNumber, "normalizedPage:", normalizedPage, "allBonds:", allBonds);
       if (type) {
         console.log("Fetching bonds for category:", type);
         const category = await BondCategory.findOne({
           categoryName: type,
         }).populate("bondIds");
-        const skip = (page - 1) * limit;
+        const skip = (normalizedPage - 1) * limit;
 
         if (category) {
           const activeBonds = category.bondIds.filter(bond => bond.status === 'ACTIVE');
@@ -428,7 +437,7 @@ class BondController {
         data = await this.bondService.getAllBondsFromDB({
           query,
           limit,
-          page,
+          page: normalizedPage,
           allBonds,
         });
       }
@@ -439,7 +448,7 @@ class BondController {
         data: bonds || data?.bonds || [],
         extraData: {
           totalBonds: totalBonds || data?.totalBonds || 0,
-          totalPages: Math.ceil(totalBonds / limit) || data?.totalPages,
+          totalPages: totalBonds ? Math.ceil(totalBonds / limit) : (data?.totalPages || 0),
         },
       });
     } catch (err) {
