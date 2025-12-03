@@ -417,8 +417,9 @@ class BondController {
         const skip = (page - 1) * limit;
 
         if (category) {
-          bonds = category.bondIds.slice(skip, skip + limit);
-          totalBonds = category.bondIds.length || 0;
+          const activeBonds = category.bondIds.filter(bond => bond.status === 'ACTIVE');
+          bonds = activeBonds.slice(skip, skip + limit);
+          totalBonds = activeBonds.length || 0;
         }
       } else {
         data = await this.bondService.getAllBondsFromDB({
