@@ -18,12 +18,13 @@ class BondService {
 
   async getAllBondsFromDB({
     query = {},
-    limit = 4,
+    limit = 1000,
     page = 1,
     allBonds = false,
   }) {
     const skip = (page - 1) * limit;
     if (!allBonds) query.status = BOND_STATUS.ACTIVE;
+    if (limit) query.limit = limit;
     console.log("Querying bonds with:", query);
     const bonds = await Bond.find(query)
       .sort({ tenureMonths: -1 })
