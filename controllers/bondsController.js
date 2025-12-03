@@ -412,7 +412,7 @@ class BondController {
 
       // Handle both page (1-based) and pageNumber (0-based) parameters
       // Priority: page > pageNumber > default to 1
-      const pageToUse = page || pageNumber;
+      const pageToUse = pageNumber || page || 1;
       // Use categoryName or type (for backwards compatibility)
       const categoryToSearch = type;
 
@@ -432,12 +432,10 @@ class BondController {
         }
       } else {
         console.log("Fetching bonds with general query");
-        // Convert to 1-based page for the service layer
-        const serviceePage = page || pageNumber;
         data = await this.bondService.getAllBondsFromDB({
           query,
           limit,
-          page: serviceePage,
+          page: pageToUse,
           allBonds,
         });
       }
