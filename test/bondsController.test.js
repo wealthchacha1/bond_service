@@ -27,6 +27,7 @@ describe("BondController", () => {
       log: {
         error: jest.fn(),
         info: jest.fn(),
+        warn: jest.fn(),
       },
       code: jest.fn().mockReturnThis(),
       send: jest.fn(),
@@ -203,6 +204,36 @@ describe("BondController", () => {
       expect(mockReply.send).toHaveBeenCalled();
     });
 
+    it("should throw error when calculation result is null", async () => {
+      controller.bondService.calculateBond = jest.fn().mockResolvedValue(null);
+      mockRequest.body = {
+        username: "test-user",
+        assetId: "123",
+        amount: 10000,
+      };
+
+      await controller.calculateBond(mockRequest, mockReply);
+
+      expect(mockReply.log.error).toHaveBeenCalled();
+      expect(mockReply.code).toHaveBeenCalledWith(400);
+      expect(mockReply.send).toHaveBeenCalled();
+    });
+
+    it("should throw error when calculation result is undefined", async () => {
+      controller.bondService.calculateBond = jest.fn().mockResolvedValue(undefined);
+      mockRequest.body = {
+        username: "test-user",
+        assetId: "123",
+        amount: 10000,
+      };
+
+      await controller.calculateBond(mockRequest, mockReply);
+
+      expect(mockReply.log.error).toHaveBeenCalled();
+      expect(mockReply.code).toHaveBeenCalledWith(400);
+      expect(mockReply.send).toHaveBeenCalled();
+    });
+
     it("should use default amount if not provided", async () => {
       const mockResult = {
         assetCalcDetails: {
@@ -306,6 +337,21 @@ describe("BondController", () => {
       expect(mockReply.code).toHaveBeenCalledWith(400);
       expect(mockReply.send).toHaveBeenCalled();
     });
+
+    it("should handle errors when getting KYC status fails", async () => {
+      const mockUserDetails = {
+        gripUserName: "test-user",
+      };
+      getFromRedis.mockResolvedValue(mockUserDetails);
+      controller.bondService.getKYCStatus = jest.fn().mockRejectedValue(new Error("KYC service error"));
+      mockRequest.userId = "test-user-id";
+
+      await controller.getKYCStatus(mockRequest, mockReply);
+
+      expect(mockReply.log.error).toHaveBeenCalled();
+      expect(mockReply.code).toHaveBeenCalledWith(400);
+      expect(mockReply.send).toHaveBeenCalled();
+    });
   });
 
   describe("getKYCUrl", () => {
@@ -348,6 +394,19 @@ describe("BondController", () => {
 
       await controller.getKYCUrl(mockRequest, mockReply);
 
+      expect(mockReply.log.warn).toHaveBeenCalled();
+      expect(mockReply.code).toHaveBeenCalledWith(400);
+      expect(mockReply.send).toHaveBeenCalled();
+    });
+
+    it("should return error when gripUserName is null", async () => {
+      getFromRedis.mockResolvedValue({ gripUserName: null });
+      mockRequest.query.userId = "test-user-id";
+      mockRequest.userId = "test-user-id";
+
+      await controller.getKYCUrl(mockRequest, mockReply);
+
+      expect(mockReply.log.warn).toHaveBeenCalled();
       expect(mockReply.code).toHaveBeenCalledWith(400);
       expect(mockReply.send).toHaveBeenCalled();
     });
@@ -428,6 +487,61 @@ describe("BondController", () => {
 
       await controller.getCheckoutUrl(mockRequest, mockReply);
 
+      expect(mockReply.log.warn).toHaveBeenCalled();
+      expect(mockReply.code).toHaveBeenCalledWith(400);
+      expect(mockReply.send).toHaveBeenCalled();
+    });
+
+    it("should return error when username is missing in getCheckoutUrl", async () => {
+      getFromRedis.mockResolvedValue({});
+      mockRequest.query = {
+        userId: "test-user-id",
+        assetId: "123",
+        amount: "1000",
+      };
+      mockRequest.userId = "test-user-id";
+
+      await controller.getCheckoutUrl(mockRequest, mockReply);
+
+      expect(mockReply.log.warn).toHaveBeenCalled();
+      expect(mockReply.code).toHaveBeenCalledWith(400);
+      expect(mockReply.send).toHaveBeenCalled();
+    });
+
+    it("should return error when only assetId is missing", async () => {
+      const mockUserDetails = {
+        gripUserName: "test-user",
+      };
+      getFromRedis.mockResolvedValue(mockUserDetails);
+      mockRequest.query = {
+        userId: "test-user-id",
+        amount: "1000",
+        // Missing assetId
+      };
+      mockRequest.userId = "test-user-id";
+
+      await controller.getCheckoutUrl(mockRequest, mockReply);
+
+      expect(mockReply.log.warn).toHaveBeenCalled();
+      expect(mockReply.code).toHaveBeenCalledWith(400);
+      expect(mockReply.send).toHaveBeenCalled();
+    });
+
+    it("should return error when only amount is missing", async () => {
+      const mockUserDetails = {
+        gripUserName: "test-user",
+      };
+      getFromRedis.mockResolvedValue(mockUserDetails);
+      mockRequest.query = {
+        userId: "test-user-id",
+        assetId: "123",
+        // Missing amount
+      };
+      mockRequest.userId = "test-user-id";
+
+      await controller.getCheckoutUrl(mockRequest, mockReply);
+
+      expect(mockReply.log.warn).toHaveBeenCalled();
       expect(mockReply.code).toHaveBeenCalledWith(400);
       expect(mockReply.send).toHaveBeenCalled();
     });

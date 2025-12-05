@@ -141,22 +141,6 @@ class BondService {
     }
   }
 
-  async getCheckoutUrl({ username, assetId, amount }) {
-    try {
-      const result = await this.gripService.getCheckoutUrl(
-        username,
-        assetId,
-        amount
-      );
-      return result;
-    } catch (error) {
-      this.logger.error(
-        { error, username, assetId, amount },
-        "Error getting checkout URL"
-      );
-      throw error;
-    }
-  }
 
   /**
    * Get KYC URL from Grip service
