@@ -69,7 +69,6 @@ class BondController {
   async calculateBond(request, reply) {
     try {
       const bondInput = request.body;
-      console.log("Bond Input for calculation:", bondInput);
 
       if (!bondInput || typeof bondInput !== "object") {
         return sendError({
@@ -94,8 +93,6 @@ class BondController {
         assetId,
         amount: amount || 10000, // Default amount if not provided
       });
-
-      console.log("Bond Calculation Result:", JSON.stringify(result, null, 2));
 
       if (!result) {
         throw new Error("No calculation result received from bond service");
@@ -138,8 +135,6 @@ class BondController {
       const bondDetails = await this.bondService.getBondDetails({
         bondId,
       });
-
-      console.log("Bond Details:", bondDetails);
 
       // Return the response
       sendSuccess({
@@ -274,13 +269,13 @@ class BondController {
           "BOND_FOLIO_CREATE"
         );
 
-        console.log(
+        reply.log.info(
           { bondFolioPayload },
           "Published bond folio creation message to Kafka"
         );
       } catch (kafkaErr) {
         // Log but don't fail the request if Kafka fails
-        console.log(
+        reply.log.error(
           { kafkaErr },
           "Failed to publish bond folio message to Kafka"
         );
@@ -339,21 +334,7 @@ class BondController {
         countryCode,
       });
 
-      console.log("Grip user created successfully", result);
-
-      console.log(
-        {
-          userId: request.userId,
-          gripId: result,
-        },
-        {
-          headers: {
-            accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: request.headers.authorization,
-          },
-        }
-      );
+      reply.log.info({ gripId: result }, "Grip user created successfully");
       const response = await axios.post(
         `${process.env.INTERNAL_API_BASE_URL}/auth/update-user-grip-name`,
         {
@@ -369,7 +350,7 @@ class BondController {
         }
       );
 
-      console.log("User Grip name updated successfully", response.data);
+      reply.log.info(`User Grip name updated successfully: ${response.data}`);
 
       sendSuccess({
         reply,
@@ -431,7 +412,6 @@ class BondController {
           totalBonds = activeBonds.length || 0;
         }
       } else {
-        console.log("Fetching bonds with general query");
         data = await this.bondService.getAllBondsFromDB({
           query,
           limit,
@@ -451,7 +431,7 @@ class BondController {
         },
       });
     } catch (err) {
-      reply.log.error({ err }, "Error in getAllBonds");
+      reply.log.error({ err }, "Error in getAllBondsFromDB");
       sendError({
         reply,
         message: err.message || "Failed to fetch bonds",

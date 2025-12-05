@@ -24,7 +24,6 @@ class BondService {
   }) {
     const skip = (page - 1) * limit;
     if (!allBonds) query.status = BOND_STATUS.ACTIVE;
-    console.log("Querying bonds with:", query);
     const bonds = await Bond.find(query)
       .sort({ tenureMonths: -1 })
       .skip(skip)
@@ -92,18 +91,13 @@ class BondService {
   async getAllGripBonds() {
     try {
       this.logger.info("Fetching all bonds from Grip service");
-
-      console.log("Fetching all bonds from Grip service");
       const result = await this.gripService.getAllBonds(
         "68cc07d2b56f2c5b52a0d1b0"
       );
-      console.log("Result:::::::::::::", result);
-      // this.logger.info({ totalSchemes: result.totalSchemes }, "All bonds fetched");
-      console.log("All bonds fetched", result);
+      this.logger.info("All bonds fetched successfully");
       return result;
     } catch (error) {
       this.logger.error({ error }, "Error fetching all bonds");
-      console.log("Error fetching all bonds", error);
       throw error;
     }
   }
@@ -128,7 +122,6 @@ class BondService {
       return bond;
     } catch (error) {
       this.logger.error({ error, bondId }, "Error fetching bond details");
-      console.log("Error fetching bond details", error);
       throw error;
     }
   }
@@ -198,7 +191,7 @@ class BondService {
       return result;
     } catch (error) {
       this.logger.error(
-        { error, username, amount },
+        { error, username, assetId, amount },
         "Error getting checkout URL"
       );
       throw error;

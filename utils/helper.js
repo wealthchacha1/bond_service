@@ -7,6 +7,9 @@ const {
 } = require("@wc/common-service");
 const { REDIS_KEYS } = require("../applicationConstants");
 
+// Use global logger (same as fastify.log) for PM2 logging
+const logger = global.logger || require("../logger");
+
 /**
  * Calculate interest and maturity on ₹1L using your logic with Decimal.js
  * @param {number} maturityValue - maturity value for ₹5000 FD (e.g., 5565)
@@ -155,22 +158,18 @@ async function getUserToken(userId) {
       const verifiedUser = await verifyToken(redisToken);
       if (verifiedUser) {
         isTokenValid = true;
-        console.log(`Token verified successfully for user ${userId}`);
+        logger.info({ userId }, "Token verified successfully from Redis");
       } else {
         // Token is expired or invalid (verifyToken returns null for expired tokens)
-        console.log(
-          `Token verification failed for user ${userId} - token expired or user mismatch`
-        );
         isTokenValid = false;
+        logger.info({ userId }, "Token expired or invalid, will generate new token");
         // Clear the expired token from Redis
         redisToken = null;
       }
     } catch (error) {
-      console.log(
-        `Token verification failed for user ${userId}:`,
-        error.message
-      );
+      // Token verification failed
       isTokenValid = false;
+      logger.warn({ error: { message: error.message }, userId }, "Token verification failed");
       // Clear the invalid token from Redis
       redisToken = null;
     }
@@ -190,9 +189,9 @@ async function getUserToken(userId) {
       redisToken = generateToken({ user: parsedUserDetails });
       await saveToRedis(userKey, redisToken); // 7 days expiry
 
-      console.log(`Generated new token for user ${userId}`);
+      logger.info({ userId }, "Generated new token and saved to Redis");
     } else {
-      console.error(`User details not found for userId: ${userId}`);
+      logger.error({ userId }, "User details not found. Cannot generate token.");
       throw new Error("User details not found. Cannot generate token.");
     }
   }
