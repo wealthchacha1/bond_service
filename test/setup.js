@@ -1,6 +1,9 @@
 // Jest setup file
 jest.setTimeout(10000);
 
+// Set environment variables for tests
+process.env.INTERNAL_API_BASE_URL = "http://localhost:3000";
+
 // Mock console methods to reduce noise in tests
 global.console = {
   ...console,

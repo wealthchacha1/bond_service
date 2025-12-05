@@ -26,6 +26,7 @@ describe("BondController", () => {
     mockReply = {
       log: {
         error: jest.fn(),
+        info: jest.fn(),
       },
       code: jest.fn().mockReturnThis(),
       send: jest.fn(),
@@ -317,6 +318,7 @@ describe("BondController", () => {
       getFromRedis.mockResolvedValue(mockUserDetails);
       controller.bondService.getKYCUrl = jest.fn().mockResolvedValue(mockKYCUrl);
       mockRequest.query.userId = "test-user-id";
+      mockRequest.userId = "test-user-id";
 
       await controller.getKYCUrl(mockRequest, mockReply);
 
@@ -328,9 +330,20 @@ describe("BondController", () => {
       expect(mockReply.send).toHaveBeenCalled();
     });
 
+    it("should return error when userId from query doesn't match authenticated userId", async () => {
+      mockRequest.userId = "authenticated-user-id";
+      mockRequest.query.userId = "different-user-id";
+
+      await controller.getKYCUrl(mockRequest, mockReply);
+
+      expect(mockReply.code).toHaveBeenCalledWith(403);
+      expect(mockReply.send).toHaveBeenCalled();
+    });
+
     it("should return error when gripUserName is missing", async () => {
       getFromRedis.mockResolvedValue({});
       mockRequest.query.userId = "test-user-id";
+      mockRequest.userId = "test-user-id";
 
       await controller.getKYCUrl(mockRequest, mockReply);
 
@@ -346,6 +359,7 @@ describe("BondController", () => {
       getFromRedis.mockResolvedValue(mockUserDetails);
       controller.bondService.getKYCUrl = jest.fn().mockRejectedValue(new Error("KYC URL generation failed"));
       mockRequest.query.userId = "test-user-id";
+      mockRequest.userId = "test-user-id";
 
       await controller.getKYCUrl(mockRequest, mockReply);
 
@@ -370,6 +384,7 @@ describe("BondController", () => {
         assetId: "123",
         amount: "1000",
       };
+      mockRequest.userId = "test-user-id";
       mockRequest.parentIFAId = "ifa-id";
 
       await controller.getCheckoutUrl(mockRequest, mockReply);
@@ -384,6 +399,20 @@ describe("BondController", () => {
       expect(mockReply.send).toHaveBeenCalled();
     });
 
+    it("should return error when userId from query doesn't match authenticated userId", async () => {
+      mockRequest.userId = "authenticated-user-id";
+      mockRequest.query = {
+        userId: "different-user-id",
+        assetId: "123",
+        amount: "1000",
+      };
+
+      await controller.getCheckoutUrl(mockRequest, mockReply);
+
+      expect(mockReply.code).toHaveBeenCalledWith(403);
+      expect(mockReply.send).toHaveBeenCalled();
+    });
+
     it("should return error for missing required parameters", async () => {
       const mockUserDetails = {
         gripUserName: "test-user",
@@ -393,6 +422,7 @@ describe("BondController", () => {
         userId: "test-user-id",
         // Missing assetId and amount
       };
+      mockRequest.userId = "test-user-id";
 
       await controller.getCheckoutUrl(mockRequest, mockReply);
 
@@ -406,6 +436,7 @@ describe("BondController", () => {
       };
       getFromRedis.mockResolvedValue(mockUserDetails);
       controller.bondService.getCheckoutUrl = jest.fn().mockRejectedValue(new Error("Checkout URL generation failed"));
+      mockRequest.userId = "test-user-id";
       mockRequest.query = {
         userId: "test-user-id",
         assetId: "123",
@@ -601,8 +632,8 @@ describe("BondController", () => {
 
       expect(controller.bondService.getAllBondsFromDB).toHaveBeenCalledWith({
         query: {},
-        limit: "10",
-        page: "1",
+        limit: 10,
+        page: 1,
         allBonds: undefined,
       });
       expect(mockReply.send).toHaveBeenCalled();
@@ -645,10 +676,102 @@ describe("BondController", () => {
 
       expect(controller.bondService.getAllBondsFromDB).toHaveBeenCalledWith({
         query: {},
-        limit: "10",
-        page: "2",
+        limit: 10,
+        page: 2,
         allBonds: undefined,
       });
+    });
+
+    it("should enforce maximum limit of 100", async () => {
+      const mockData = {
+        bonds: [{ id: 1, name: "Bond 1" }],
+        totalBonds: 1,
+        totalPages: 1,
+      };
+
+      controller.bondService.getAllBondsFromDB = jest.fn().mockResolvedValue(mockData);
+      BondCategory.findOne = jest.fn().mockReturnValue({
+        populate: jest.fn().mockResolvedValue(null),
+      });
+      mockRequest.query = {
+        limit: "200", // Should be capped at 100
+        page: "1",
+      };
+
+      await controller.getAllBondsFromDB(mockRequest, mockReply);
+
+      expect(controller.bondService.getAllBondsFromDB).toHaveBeenCalledWith({
+        query: {},
+        limit: 100,
+        page: 1,
+        allBonds: undefined,
+      });
+    });
+
+    it("should enforce minimum page of 1", async () => {
+      const mockData = {
+        bonds: [{ id: 1, name: "Bond 1" }],
+        totalBonds: 1,
+        totalPages: 1,
+      };
+
+      controller.bondService.getAllBondsFromDB = jest.fn().mockResolvedValue(mockData);
+      BondCategory.findOne = jest.fn().mockReturnValue({
+        populate: jest.fn().mockResolvedValue(null),
+      });
+      mockRequest.query = {
+        limit: "10",
+        page: "0", // Should be set to 1
+      };
+
+      await controller.getAllBondsFromDB(mockRequest, mockReply);
+
+      expect(controller.bondService.getAllBondsFromDB).toHaveBeenCalledWith({
+        query: {},
+        limit: 10,
+        page: 1,
+        allBonds: undefined,
+      });
+    });
+
+    it("should sanitize categoryToSearch to prevent NoSQL injection", async () => {
+      const mockCategory = {
+        bondIds: [{ id: 1, name: "Bond 1", status: "ACTIVE" }],
+      };
+
+      BondCategory.findOne = jest.fn().mockReturnValue({
+        populate: jest.fn().mockResolvedValue(mockCategory),
+      });
+      mockRequest.query = {
+        type: "test${ne:null}", // Attempted NoSQL injection
+        limit: "10",
+        page: "1",
+      };
+
+      await controller.getAllBondsFromDB(mockRequest, mockReply);
+
+      // Should sanitize and remove ${} characters
+      expect(BondCategory.findOne).toHaveBeenCalledWith({
+        categoryName: "testne:null", // Sanitized
+      });
+    });
+
+    it("should return generic error message on failure", async () => {
+      controller.bondService.getAllBondsFromDB = jest.fn().mockRejectedValue(new Error("Database error with sensitive info"));
+      BondCategory.findOne = jest.fn().mockReturnValue({
+        populate: jest.fn().mockResolvedValue(null),
+      });
+      mockRequest.query = {
+        limit: "10",
+        page: "1",
+      };
+
+      await controller.getAllBondsFromDB(mockRequest, mockReply);
+
+      expect(mockReply.send).toHaveBeenCalled();
+      const sendCall = mockReply.send.mock.calls[0][0];
+      expect(sendCall.message).toBe("Failed to fetch bonds");
+      expect(sendCall.message).not.toContain("Database error");
     });
   });
 });

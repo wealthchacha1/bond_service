@@ -2,9 +2,11 @@ const BondService = require("../services/bondService");
 const Bond = require("../models/bondsSchema");
 const { GripFinanceService } = require("@fc/grip_bond_service");
 const { BOND_STATUS } = require("../applicationConstants");
+const { saveAdminLog, saveAuthLog } = require("../utils/auditLogs");
 
 jest.mock("../models/bondsSchema");
 jest.mock("@fc/grip_bond_service");
+jest.mock("../utils/auditLogs");
 
 describe("BondService", () => {
   let bondService;
@@ -115,6 +117,39 @@ describe("BondService", () => {
         "68cc07d2b56f2c5b52a0d1b0"
       );
       expect(result).toEqual(mockBonds);
+    });
+  });
+
+  describe("getAllGripBonds", () => {
+    it("should fetch all bonds from Grip service successfully", async () => {
+      const mockBonds = {
+        data: [
+          { id: 1, name: "Bond 1" },
+          { id: 2, name: "Bond 2" },
+        ],
+      };
+
+      bondService.gripService.getAllBonds = jest.fn().mockResolvedValue(mockBonds);
+
+      const result = await bondService.getAllGripBonds();
+
+      expect(bondService.gripService.getAllBonds).toHaveBeenCalledWith(
+        "68cc07d2b56f2c5b52a0d1b0"
+      );
+      expect(result).toEqual(mockBonds);
+      expect(mockLogger.info).toHaveBeenCalledWith("Fetching all bonds from Grip service");
+      expect(mockLogger.info).toHaveBeenCalledWith("All bonds fetched successfully");
+    });
+
+    it("should handle errors when fetching all bonds fails", async () => {
+      const error = new Error("Failed to fetch bonds");
+      bondService.gripService.getAllBonds = jest.fn().mockRejectedValue(error);
+
+      await expect(bondService.getAllGripBonds()).rejects.toThrow("Failed to fetch bonds");
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        { error: { message: error.message } },
+        "Error fetching all bonds"
+      );
     });
   });
 
@@ -261,6 +296,25 @@ describe("BondService", () => {
         "user-id"
       );
       expect(result).toEqual(mockUrl);
+      expect(mockLogger.info).toHaveBeenCalledWith({ username: "test-user" }, "Getting KYC URL");
+      expect(mockLogger.info).toHaveBeenCalledWith({ result: mockUrl }, "KYC URL generated");
+    });
+
+    it("should handle errors when getting KYC URL fails", async () => {
+      const error = new Error("KYC URL generation failed");
+      bondService.gripService.getRedirectionUrlForKYC = jest.fn().mockRejectedValue(error);
+
+      await expect(
+        bondService.getKYCUrl({
+          username: "test-user",
+          userId: "user-id",
+        })
+      ).rejects.toThrow("KYC URL generation failed");
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        { error, username: "test-user", userId: "user-id" },
+        "Error getting KYC URL"
+      );
     });
   });
 
@@ -282,6 +336,25 @@ describe("BondService", () => {
         "1000"
       );
       expect(result).toEqual(mockUrl);
+      expect(mockLogger.info).toHaveBeenCalledWith({ result: mockUrl }, "Checkout URL generated");
+    });
+
+    it("should handle errors when getting checkout URL fails", async () => {
+      const error = new Error("Checkout URL generation failed");
+      bondService.gripService.getCheckoutRedirectUrl = jest.fn().mockRejectedValue(error);
+
+      await expect(
+        bondService.getCheckoutUrl({
+          username: "test-user",
+          assetId: "123",
+          amount: "1000",
+        })
+      ).rejects.toThrow("Checkout URL generation failed");
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        { error, username: "test-user", assetId: "123", amount: "1000" },
+        "Error getting checkout URL"
+      );
     });
   });
 
@@ -342,6 +415,46 @@ describe("BondService", () => {
         userData,
         "john7890"
       );
+    });
+
+    it("should handle errors when creating Grip user fails", async () => {
+      const error = new Error("User creation failed");
+      const userData = {
+        emailID: "test@example.com",
+        phoneNumber: "1234567890",
+        firstName: "Test",
+        lastName: "User",
+        countryCode: 91,
+      };
+
+      bondService.gripService.createGripUser = jest.fn().mockRejectedValue(error);
+
+      await expect(bondService.createGripUser(userData)).rejects.toThrow("User creation failed");
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        { error, emailID: "test@example.com", phoneNumber: "1234567890" },
+        "Error creating Grip user"
+      );
+    });
+  });
+
+  describe("saveAdminLog", () => {
+    it("should save admin log", async () => {
+      const logData = { action: "test", userId: "user123" };
+
+      await bondService.saveAdminLog(logData);
+
+      expect(saveAdminLog).toHaveBeenCalledWith(logData);
+    });
+  });
+
+  describe("saveAuthLog", () => {
+    it("should save auth log", async () => {
+      const logData = { action: "login", userId: "user123" };
+
+      await bondService.saveAuthLog(logData);
+
+      expect(saveAuthLog).toHaveBeenCalledWith(logData);
     });
   });
 });
