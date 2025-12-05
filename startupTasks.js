@@ -1,3 +1,4 @@
+const cron = require("node-cron");
 const BondsController = require("./controllers/bondsController");
 const Bond = require("./models/bondsSchema");
 const BondService = require("./services/bondService");
@@ -95,7 +96,27 @@ async function runStartupTasks(logger) {
   try {
     logger.info("Starting startup tasks...");
 
+    // Run initial fetch once at startup
     const result = await runGripBondInitialFetch(logger);
+    
+    // Schedule daily cron job to run at 1:30 AM
+    cron.schedule(
+      "30 1 * * *",
+      async () => {
+        logger.info("Running scheduled Grip Bond initial fetch at 1:30 AM...");
+        try {
+          await runGripBondInitialFetch(logger);
+        } catch (error) {
+          logger.error({ error }, "Error in scheduled Grip Bond initial fetch");
+        }
+      },
+      {
+        scheduled: true,
+        timezone: "Asia/Kolkata", // Adjust timezone as needed
+      }
+    );
+    
+    logger.info("Grip Bond initial fetch cron scheduled for daily at 1:30 AM");
     
     return result;
   } catch (error) {
