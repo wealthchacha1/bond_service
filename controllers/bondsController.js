@@ -198,16 +198,20 @@ class BondController {
 
       const username = userDetails.gripUserName;
       if (!username) {
+        reply.log.warn({ userId, userDetailsKeys: Object.keys(userDetails || {}) }, "gripUserName not found in user details");
         return sendError({
           reply,
           message: "Please contact support",
           statusCode: 400,
         });
       }
+      
+      reply.log.info({ userId, username }, "Generating KYC URL");
       const { redirectUrl } = await this.bondService.getKYCUrl({
         username,
         userId,
       });
+      reply.log.info({ userId, hasRedirectUrl: !!redirectUrl }, "KYC URL generated successfully");
       sendSuccess({
         reply,
         message: "KYC URL generated successfully",
@@ -235,6 +239,7 @@ class BondController {
       const username = userDetails.gripUserName;
       const { assetId, amount } = request.query;
       if (!username || !assetId || !amount) {
+        reply.log.warn({ userId, hasUsername: !!username, assetId, amount }, "Missing required parameters in getCheckoutUrl");
         return sendError({
           reply,
           message: "Missing required parameters: username, assetId, amount",
