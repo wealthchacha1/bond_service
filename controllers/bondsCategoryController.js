@@ -38,6 +38,14 @@ class BondsCategoryController {
    */
   async updateBondsInCategory(request, reply) {
     try {
+      if (request.role && request.role.toLowerCase() !== 'admin') {
+        return sendError({
+          reply,
+          message: "Unauthorized: Admin access required",
+          statusCode: 403,
+        });
+      }
+
       const { addBondIds = [], removeBondIds = [], categoryName } = request.body;
 
       if (
