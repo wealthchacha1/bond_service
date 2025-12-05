@@ -147,7 +147,7 @@ describe("BondService", () => {
 
       await expect(bondService.getAllGripBonds()).rejects.toThrow("Failed to fetch bonds");
       expect(mockLogger.error).toHaveBeenCalledWith(
-        { error: { message: error.message } },
+        { error },
         "Error fetching all bonds"
       );
     });
